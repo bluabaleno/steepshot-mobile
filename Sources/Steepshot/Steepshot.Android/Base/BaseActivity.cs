@@ -8,7 +8,6 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using Autofac;
-using Com.Bumptech.Glide;
 using Steepshot.Core.Authority;
 using Steepshot.Core.Services;
 using Steepshot.Core.Utils;

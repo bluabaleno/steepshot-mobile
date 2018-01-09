@@ -498,8 +498,17 @@ namespace Steepshot.Fragment
             if (photo == null)
                 return;
 
-            var intent = new Intent(Context, typeof(PostPreviewActivity));
-            intent.PutExtra(PostPreviewActivity.PhotoExtraPath, photo);
+            Intent intent;
+            if (photo.EndsWith(".mp4"))
+            {
+                intent = new Intent(Context, typeof(VideoActivity));
+                intent.PutExtra(VideoActivity.VideoExtraPath, photo);
+            }
+            else
+            {
+                intent = new Intent(Context, typeof(PostPreviewActivity));
+                intent.PutExtra(PostPreviewActivity.PhotoExtraPath, photo);
+            }
             StartActivity(intent);
         }
 
