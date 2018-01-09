@@ -6,11 +6,12 @@ using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
 using Refractored.Controls;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core;
 using Steepshot.Core.Models.Common;
 using Steepshot.Core.Presenters;
 using Steepshot.Utils;
+using Com.Bumptech.Glide.Request;
 
 namespace Steepshot.Adapter
 {
@@ -72,7 +73,7 @@ namespace Steepshot.Adapter
             }
         }
 
-        private class FollowersViewHolder : RecyclerView.ViewHolder, ITarget
+        private class FollowersViewHolder : RecyclerView.ViewHolder
         {
             private readonly CircleImageView _friendAvatar;
             private readonly TextView _friendName;
@@ -131,15 +132,10 @@ namespace Steepshot.Adapter
 
                 _friendLogin.Text = userFriends.Author;
 
+                _friendAvatar.SetImageResource(Resource.Drawable.ic_holder);
+
                 if (!string.IsNullOrEmpty(_userFriends.Avatar))
-                    Picasso.With(_context).Load(_userFriends.Avatar)
-                       .Placeholder(Resource.Drawable.ic_holder)
-                       .NoFade()
-                       .Resize(300, 0)
-                       .Priority(Picasso.Priority.Normal)
-                       .Into(_friendAvatar, OnSuccess, OnError);
-                else
-                    Picasso.With(_context).Load(Resource.Drawable.ic_holder).Into(_friendAvatar);
+                    Glide.With(_context).Load(_userFriends.Avatar).Apply(RequestOptions.CircleCropTransform()).Into(_friendAvatar);
 
                 _followButton.Visibility = BasePresenter.User.Login == _friendLogin.Text
                     ? ViewStates.Gone
@@ -187,28 +183,6 @@ namespace Steepshot.Adapter
                     background.SetCornerRadius(100);
                     _followButton.Background = background;
                 }
-            }
-
-            private void OnSuccess()
-            {
-            }
-
-            private void OnError()
-            {
-                Picasso.With(_context).Load(_userFriends.Avatar).NoFade().Into(this);
-            }
-
-            public void OnBitmapFailed(Drawable p0)
-            {
-            }
-
-            public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-            {
-                _friendAvatar.SetImageBitmap(p0);
-            }
-
-            public void OnPrepareLoad(Drawable p0)
-            {
             }
         }
     }

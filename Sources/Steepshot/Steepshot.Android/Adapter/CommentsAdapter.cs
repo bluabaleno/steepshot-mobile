@@ -1,14 +1,13 @@
 ﻿using System;
 using Android.Content;
 using Android.Graphics;
-using Android.Graphics.Drawables;
 using Android.Support.Design.Widget;
 using Android.Support.V7.Widget;
 using Android.Text.Method;
 using Android.Views;
 using Android.Widget;
 using Refractored.Controls;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core;
 using Steepshot.Core.Extensions;
 using Steepshot.Core.Models.Common;
@@ -16,6 +15,7 @@ using Steepshot.Core.Models.Requests;
 using Steepshot.Core.Presenters;
 using Steepshot.Utils;
 using System.Threading.Tasks;
+using Com.Bumptech.Glide.Request;
 
 namespace Steepshot.Adapter
 {
@@ -136,23 +136,17 @@ namespace Steepshot.Adapter
         public void UpdateData(Post post, Context context)
         {
             _post = post;
+            _avatar.SetImageResource(Resource.Drawable.ic_holder);
             if (!string.IsNullOrEmpty(_post.Avatar))
-                Picasso.With(context).Load(_post.Avatar).Placeholder(Resource.Drawable.ic_holder).Resize(300, 0).Priority(Picasso.Priority.Low).Into(_avatar, null, OnPicassoError);
-            else
-                Picasso.With(context).Load(Resource.Drawable.ic_holder).Into(_avatar);
+                Glide.With(context).Load(_post.Avatar).Apply(RequestOptions.CircleCropTransform()).Into(_avatar);
 
             _author.Text = post.Author;
             _time.Text = post.Created.ToPostTime();
             _title.UpdateText(_post, tagToExclude, _tagFormat, _maxLines, _post.IsExpanded);
         }
-
-        private void OnPicassoError()
-        {
-            Picasso.With(_context).Load(_post.Avatar).Placeholder(Resource.Drawable.ic_holder).NoFade().Into(_avatar);
-        }
     }
 
-    public class CommentViewHolder : RecyclerView.ViewHolder, ITarget
+    public class CommentViewHolder : RecyclerView.ViewHolder
     {
         private readonly ImageView _avatar;
         private readonly TextView _author;
@@ -362,15 +356,9 @@ namespace Steepshot.Adapter
             if (_post.Author == BasePresenter.User.Login)
                 _more.Visibility = ViewStates.Gone;
 
+            _avatar.SetImageResource(Resource.Drawable.ic_holder);
             if (!string.IsNullOrEmpty(_post.Avatar))
-                Picasso.With(_context).Load(_post.Avatar)
-                       .Placeholder(Resource.Drawable.ic_holder)
-                       .NoFade()
-                       .Resize(300, 0)
-                       .Priority(Picasso.Priority.Normal)
-                       .Into(_avatar, OnSuccess, OnError);
-            else
-                Picasso.With(context).Load(Resource.Drawable.ic_holder).Into(_avatar);
+                Glide.With(_context).Load(_post.Avatar).Apply(RequestOptions.CircleCropTransform()).Into(_avatar);
 
             if (isAnimationRuning && !post.VoteChanging)
             {
@@ -414,29 +402,5 @@ namespace Steepshot.Adapter
             _cost.Text = BasePresenter.ToFormatedCurrencyString(post.TotalPayoutReward);
             _time.Text = post.Created.ToPostTime();
         }
-
-        private void OnSuccess()
-        {
-        }
-
-        private void OnError()
-        {
-            Picasso.With(_context).Load(_post.Avatar).NoFade().Into(this);
-        }
-
-        public void OnBitmapFailed(Drawable p0)
-        {
-        }
-
-        public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-        {
-            _avatar.SetImageBitmap(p0);
-        }
-
-        public void OnPrepareLoad(Drawable p0)
-        {
-        }
     }
-
-
 }

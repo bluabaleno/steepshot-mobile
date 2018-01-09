@@ -6,7 +6,7 @@ using Android.Support.V7.Widget;
 using Android.Text.Method;
 using Android.Views;
 using Android.Widget;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core;
 using Steepshot.Core.Models.Common;
 using Steepshot.Core.Presenters;
@@ -20,6 +20,7 @@ using Steepshot.Core.Models.Requests;
 using Steepshot.Core.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Com.Bumptech.Glide.Request;
 
 namespace Steepshot.Adapter
 {
@@ -402,10 +403,9 @@ namespace Steepshot.Adapter
             _time.Text = post.Created.ToPostTime();
             _author.Text = post.Author;
 
+            _avatar.SetImageResource(Resource.Drawable.ic_holder);
             if (!string.IsNullOrEmpty(_post.Avatar))
-                Picasso.With(_context).Load(_post.Avatar).Placeholder(Resource.Drawable.ic_holder).Resize(300, 0).Priority(Picasso.Priority.Low).Into(_avatar, null, OnPicassoError);
-            else
-                Picasso.With(context).Load(Resource.Drawable.ic_holder).Into(_avatar);
+                Glide.With(_context).Load(_post.Avatar).Apply(RequestOptions.CircleCropTransform()).Into(_avatar);
 
             ((PostPhotosPagerAdapter)_photosViewPager.Adapter).UpdateData(PhotoPagerType, _post);
 
@@ -420,16 +420,10 @@ namespace Steepshot.Adapter
                     layoutParams.LeftMargin = -topLikersMargin;
                 _topLikers.AddView(topLikersAvatar, layoutParams);
                 var avatarUrl = _post.TopLikersAvatars[i];
+
+                topLikersAvatar.SetImageResource(Resource.Drawable.ic_holder);
                 if (!string.IsNullOrEmpty(avatarUrl))
-                    Picasso.With(_context).Load(avatarUrl).Placeholder(Resource.Drawable.ic_holder).Resize(240, 0).Priority(Picasso.Priority.Low).Into(topLikersAvatar, null,
-                        () =>
-                        {
-                            Picasso.With(_context).Load(avatarUrl)
-                                .Placeholder(Resource.Drawable.ic_holder).Priority(Picasso.Priority.Low)
-                                .Into(topLikersAvatar);
-                        });
-                else
-                    Picasso.With(context).Load(Resource.Drawable.ic_holder).Into(topLikersAvatar);
+                    Glide.With(_context).Load(avatarUrl).Apply(RequestOptions.CircleCropTransform()).Into(topLikersAvatar);
             }
 
             _title.UpdateText(_post, tagToExclude, _tagFormat, _maxLines, _post.IsExpanded || PhotoPagerType == PostPagerType.PostScreen);
@@ -496,11 +490,6 @@ namespace Steepshot.Adapter
             _nsfwMask.LayoutParameters.Height = ItemView.MeasuredHeight;
         }
 
-        private void OnPicassoError()
-        {
-            Picasso.With(_context).Load(_post.Avatar).Placeholder(Resource.Drawable.ic_holder).NoFade().Into(_avatar);
-        }
-
         protected enum PostPagerType
         {
             Feed,
@@ -543,12 +532,8 @@ namespace Steepshot.Adapter
                 if (path != null)
                 {
                     var photo = (ImageView)photoCard.GetChildAt(0);
-                    Picasso.With(Context).Load(path).NoFade()
-                        .Resize(Context.Resources.DisplayMetrics.WidthPixels, 0).Priority(Picasso.Priority.High)
-                        .Into(photo, null, () =>
-                        {
-                            Picasso.With(Context).Load(path).NoFade().Priority(Picasso.Priority.High).Into(photo);
-                        });
+                    Glide.With(Context).Load(path).Into(photo);
+
                     if (_type == PostPagerType.PostScreen)
                     {
                         photoCard.Radius = (int)BitmapUtils.DpToPixel(7, Context.Resources);

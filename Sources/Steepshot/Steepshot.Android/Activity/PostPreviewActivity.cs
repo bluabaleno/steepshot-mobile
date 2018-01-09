@@ -1,16 +1,14 @@
 using Android.App;
-using Android.Graphics;
-using Android.Graphics.Drawables;
 using Android.OS;
+using Com.Bumptech.Glide;
 using Com.Lilarcor.Cheeseknife;
-using Square.Picasso;
 using Steepshot.Base;
 using Steepshot.Utils;
 
 namespace Steepshot.Activity
 {
     [Activity(Label = "PostPreviewActivity", ScreenOrientation = Android.Content.PM.ScreenOrientation.Portrait)]
-    public sealed class PostPreviewActivity : BaseActivity, ITarget
+    public sealed class PostPreviewActivity : BaseActivity
     {
         public const string PhotoExtraPath = "PhotoExtraPath";
         private string path;
@@ -28,39 +26,13 @@ namespace Steepshot.Activity
 
             path = Intent.GetStringExtra(PhotoExtraPath);
             if (!string.IsNullOrWhiteSpace(path))
-                Picasso.With(this)
-                       .Load(path)
-                       .NoFade()
-                       .Resize(Resources.DisplayMetrics.WidthPixels, 0)
-                       .Into(_photo, OnSuccess, OnError);
+                Glide.With(this).Load(path).Into(_photo);
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
             Cheeseknife.Reset(this);
-        }
-
-        public void OnBitmapFailed(Drawable p0)
-        {
-        }
-
-        public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-        {
-            _photo.SetImageBitmap(p0);
-        }
-
-        public void OnPrepareLoad(Drawable p0)
-        {
-        }
-
-        private void OnSuccess()
-        {
-        }
-
-        private void OnError()
-        {
-            Picasso.With(this).Load(path).NoFade().Into(this);
         }
     }
 }

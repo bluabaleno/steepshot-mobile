@@ -2,8 +2,6 @@ using System;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Graphics;
-using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Support.V4.Content;
 using Android.Support.V7.Widget;
@@ -11,18 +9,19 @@ using Android.Views;
 using Android.Widget;
 using Com.Lilarcor.Cheeseknife;
 using Refractored.Controls;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Base;
 using Steepshot.Core;
 using Steepshot.Core.Presenters;
 using Steepshot.Core.Utils;
 using Steepshot.Utils;
 using ZXing.Mobile;
+using Com.Bumptech.Glide.Request;
 
 namespace Steepshot.Activity
 {
     [Activity(ScreenOrientation = Android.Content.PM.ScreenOrientation.Portrait)]
-    public sealed class SignInActivity : BaseActivityWithPresenter<SignInPresenter>, ITarget
+    public sealed class SignInActivity : BaseActivityWithPresenter<SignInPresenter>
     {
         public const string LoginExtraPath = "login";
         public const string AvatarUrlExtraPath = "avatar_url";
@@ -72,13 +71,12 @@ namespace Steepshot.Activity
                 ? di.GolosTestWif
                 : di.SteemTestWif;
 #endif
+
+            _profileImage.SetImageResource(Resource.Drawable.ic_holder);
             if (!string.IsNullOrEmpty(_profileImageUrl))
-                Picasso.With(this).Load(_profileImageUrl)
-                       .Placeholder(Resource.Drawable.ic_holder)
-                       .NoFade()
-                       .Resize(300, 0)
-                       .Priority(Picasso.Priority.Normal)
-                       .Into(_profileImage, OnSuccess, OnError);
+            {
+                Glide.With(this).Load(_profileImageUrl).Apply(RequestOptions.CircleCropTransform()).Into(_profileImage);
+            }
 
             _buttonScanDefaultView.Click += OnButtonScanDefaultViewOnClick;
             _signInBtn.Click += SignInBtn_Click;
@@ -94,7 +92,7 @@ namespace Steepshot.Activity
         private async void OnButtonScanDefaultViewOnClick(object sender, EventArgs e)
         {
             if (PermissionChecker.CheckSelfPermission(this, Android.Manifest.Permission.Camera) == (int)Permission.Granted
-                    && PermissionChecker.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) == (int)Permission.Granted)
+                && PermissionChecker.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) == (int)Permission.Granted)
             {
                 try
                 {
@@ -176,28 +174,6 @@ namespace Steepshot.Activity
         private void HideKeyboard(object sender, EventArgs e)
         {
             HideKeyboard();
-        }
-
-        private void OnSuccess()
-        {
-        }
-
-        private void OnError()
-        {
-            Picasso.With(this).Load(_profileImageUrl).NoFade().Into(this);
-        }
-
-        public void OnBitmapFailed(Drawable p0)
-        {
-        }
-
-        public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-        {
-            _profileImage.SetImageBitmap(p0);
-        }
-
-        public void OnPrepareLoad(Drawable p0)
-        {
         }
     }
 }

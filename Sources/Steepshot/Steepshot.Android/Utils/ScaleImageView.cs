@@ -200,10 +200,10 @@ namespace Steepshot.Utils
         }
 
         /*void SetImageCalled() {
-			if (!maintainZoomAfterSetImage) {
-				setImageCalledRecenterImage = true;
-			}
-		}*/
+      if (!maintainZoomAfterSetImage) {
+          setImageCalledRecenterImage = true;
+      }
+  }*/
 
         //
         // Returns false if image is in initial, unzoomed state. False, otherwise.
@@ -557,7 +557,8 @@ namespace Steepshot.Utils
             var drawable = Drawable;
             if (drawable == null || drawable.IntrinsicWidth == 0 || drawable.IntrinsicHeight == 0)
             {
-                SetMeasuredDimension(0, 0);
+                base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
+                //SetMeasuredDimension(0, 0);
                 return;
             }
             var drawableWidth = drawable.IntrinsicWidth;
@@ -596,6 +597,11 @@ namespace Steepshot.Utils
             {
                 return;
             }
+            if (ViewWidth < 1 || ViewHeight < 1)
+            {
+                return;
+            }
+
             var drawableWidth = drawable.IntrinsicWidth;
             var drawableHeight = drawable.IntrinsicHeight;
 

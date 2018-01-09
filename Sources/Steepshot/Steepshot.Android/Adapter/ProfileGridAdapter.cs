@@ -5,11 +5,12 @@ using Android.Graphics.Drawables;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core;
 using Steepshot.Core.Models.Responses;
 using Steepshot.Core.Presenters;
 using Steepshot.Utils;
+using Com.Bumptech.Glide.Request;
 
 namespace Steepshot.Adapter
 {
@@ -73,7 +74,7 @@ namespace Steepshot.Adapter
         }
     }
 
-    public class HeaderViewHolder : RecyclerView.ViewHolder, ITarget
+    public class HeaderViewHolder : RecyclerView.ViewHolder
     {
         private readonly Context _context;
         private readonly TextView _name;
@@ -177,16 +178,11 @@ namespace Steepshot.Adapter
 
             _profile = profile;
             _userAvatar = profile.ProfileImage;
+            _profileImage.SetImageResource(Resource.Drawable.ic_holder);
             if (!string.IsNullOrEmpty(_userAvatar))
             {
-                Picasso.With(_context).Load(_userAvatar).Placeholder(Resource.Drawable.ic_holder)
-                      .NoFade()
-                      .Resize(300, 300)
-                      .CenterCrop()
-                      .Into(_profileImage, OnSuccess, OnError);
+                Glide.With(_context).Load(_userAvatar).Apply(RequestOptions.CircleCropTransform()).Into(_profileImage);
             }
-            else
-                Picasso.With(_context).Load(Resource.Drawable.ic_holder).Into(_profileImage);
 
             if (string.Equals(BasePresenter.User.Login, profile.Username, StringComparison.OrdinalIgnoreCase))
             {
@@ -267,28 +263,6 @@ namespace Steepshot.Adapter
             _followersCount.Text = profile.FollowersCount.ToString("#,##0");
 
             _balance.Text = BasePresenter.ToFormatedCurrencyString(profile.EstimatedBalance);
-        }
-
-        public void OnBitmapFailed(Drawable p0)
-        {
-        }
-
-        public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-        {
-            _profileImage.SetImageBitmap(p0);
-        }
-
-        public void OnPrepareLoad(Drawable p0)
-        {
-        }
-
-        private void OnSuccess()
-        {
-        }
-
-        private void OnError()
-        {
-            Picasso.With(_context).Load(_userAvatar).Placeholder(Resource.Drawable.ic_holder).NoFade().Into(this);
         }
     }
 }

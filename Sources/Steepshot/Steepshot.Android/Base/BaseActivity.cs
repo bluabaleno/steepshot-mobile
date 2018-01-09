@@ -8,14 +8,13 @@ using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
 using Autofac;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core.Authority;
 using Steepshot.Core.Services;
 using Steepshot.Core.Utils;
 using Steepshot.Fragment;
 using Steepshot.Services;
 using Steepshot.Utils;
-using LruCache = Square.Picasso.LruCache;
 
 namespace Steepshot.Base
 {
@@ -28,7 +27,6 @@ namespace Steepshot.Base
         {
             InitIoC(Assets);
             base.OnCreate(savedInstanceState);
-            InitPicassoCache();
         }
 
         public override View OnCreateView(View parent, string name, Context context, IAttributeSet attrs)
@@ -40,17 +38,6 @@ namespace Steepshot.Base
                 Window.SetStatusBarColor(Color.White);
             }
             return base.OnCreateView(parent, name, context, attrs);
-        }
-
-        private void InitPicassoCache()
-        {
-            if (Cache == null)
-            {
-                Cache = new LruCache(this);
-                var d = new Picasso.Builder(this);
-                d.MemoryCache(Cache);
-                Picasso.SetSingletonInstance(d.Build());
-            }
         }
 
         public static void InitIoC(AssetManager assetManagerssets)

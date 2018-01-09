@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Android.Content;
-using Android.Graphics;
-using Android.Graphics.Drawables;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using Square.Picasso;
+using Com.Bumptech.Glide;
 using Steepshot.Core;
 using Steepshot.Core.Models.Common;
 using Steepshot.Core.Presenters;
@@ -70,7 +68,7 @@ namespace Steepshot.Adapter
         }
     }
 
-    public class ImageViewHolder : RecyclerView.ViewHolder, ITarget
+    public class ImageViewHolder : RecyclerView.ViewHolder
     {
         private readonly Action<Post> _click;
         private readonly ImageView _photo;
@@ -105,9 +103,11 @@ namespace Steepshot.Adapter
             _context = context;
             _photoString = post.Photos?.FirstOrDefault();
 
+
+            _photo.SetImageResource(Resource.Color.rgb244_244_246);
             if (_photoString != null)
             {
-                Picasso.With(_context).Load(_photoString).Placeholder(Resource.Color.rgb244_244_246).NoFade().Resize(cellSize, cellSize).CenterCrop().Into(_photo, OnSuccess, OnError);
+                Glide.With(_context).Load(_photoString).Into(_photo);
             }
 
             if (_post.IsNsfw || _post.IsLowRated)
@@ -115,28 +115,6 @@ namespace Steepshot.Adapter
                 _nsfwMaskMessage.Text = _post.IsLowRated ? Localization.Messages.LowRated : Localization.Messages.NSFW;
                 _nsfwMask.Visibility = ViewStates.Visible;
             }
-        }
-
-        public void OnBitmapFailed(Drawable p0)
-        {
-        }
-
-        public void OnBitmapLoaded(Bitmap p0, Picasso.LoadedFrom p1)
-        {
-            _photo.SetImageBitmap(p0);
-        }
-
-        public void OnPrepareLoad(Drawable p0)
-        {
-        }
-
-        private void OnSuccess()
-        {
-        }
-
-        private void OnError()
-        {
-            Picasso.With(_context).Load(_photoString).Placeholder(Resource.Color.rgb244_244_246).NoFade().Into(this);
         }
     }
 }
