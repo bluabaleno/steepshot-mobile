@@ -6,6 +6,7 @@ using Steepshot.Core.Models.Common;
 using Steepshot.Core.Models.Requests;
 using Steepshot.Core.Models.Responses;
 using Steepshot.Core.Errors;
+using Steepshot.Core.Models.Enums;
 
 namespace Steepshot.Core.Presenters
 {
@@ -44,13 +45,13 @@ namespace Steepshot.Core.Presenters
                 return Items.IndexOf(post);
         }
 
-        protected bool ResponseProcessing(OperationResult<ListResponce<Post>> response, int itemsLimit, out ErrorBase error, string sender, bool isNeedClearItems = false)
+        protected bool ResponseProcessing(OperationResult<ListResponse<Post>> response, int itemsLimit, out ErrorBase error, string sender, bool isNeedClearItems = false)
         {
             error = null;
             if (response == null)
                 return false;
 
-            if (response.Success)
+            if (response.IsSuccess)
             {
                 var results = response.Result.Results;
                 if (results.Count > 0)
@@ -70,8 +71,11 @@ namespace Steepshot.Core.Presenters
                             if (User.PostBlackList.Contains(item.Url))
                                 continue;
 
-                            Items.Add(item);
-                            isAdded = true;
+                            if (!Items.Any(itm => itm.Url.Equals(item.Url)))
+                            {
+                                Items.Add(item);
+                                isAdded = true;
+                            }
                         }
                     }
 
@@ -112,13 +116,13 @@ namespace Steepshot.Core.Presenters
             return error;
         }
 
-        private async Task<ErrorBase> Vote(CancellationToken ct, Post post)
+        private async Task<ErrorBase> Vote(Post post, CancellationToken ct)
         {
             var wasFlaged = post.Flag;
-            var request = new VoteRequest(User.UserInfo, post.Vote ? VoteType.Down : VoteType.Up, post.Url);
+            var request = new VoteModel(User.UserInfo, post.Vote ? VoteType.Down : VoteType.Up, post.Url);
             var response = await Api.Vote(request, ct);
 
-            if (response.Success)
+            if (response.IsSuccess)
             {
                 var td = DateTime.Now - response.Result.VoteTime;
                 if (VoteDelay > td.Milliseconds)
@@ -166,13 +170,13 @@ namespace Steepshot.Core.Presenters
             return error;
         }
 
-        private async Task<ErrorBase> Flag(CancellationToken ct, Post post)
+        private async Task<ErrorBase> Flag(Post post, CancellationToken ct)
         {
             var wasVote = post.Vote;
-            var request = new VoteRequest(User.UserInfo, post.Flag ? VoteType.Down : VoteType.Flag, post.Url);
+            var request = new VoteModel(User.UserInfo, post.Flag ? VoteType.Down : VoteType.Flag, post.Url);
             var response = await Api.Vote(request, ct);
 
-            if (response.Success)
+            if (response.IsSuccess)
             {
                 post.TotalPayoutReward = response.Result.NewTotalPayoutReward;
                 post.NetVotes = response.Result.NetVotes;

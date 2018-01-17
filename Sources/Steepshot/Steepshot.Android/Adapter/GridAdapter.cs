@@ -110,11 +110,13 @@ namespace Steepshot.Adapter
                 Glide.With(_context).Load(_photoString).Into(_photo);
             }
 
-            if (_post.IsNsfw || _post.IsLowRated)
+            if (_post.ShowMask && (_post.IsNsfw || _post.IsLowRated))
             {
                 _nsfwMaskMessage.Text = _post.IsLowRated ? Localization.Messages.LowRated : Localization.Messages.NSFW;
                 _nsfwMask.Visibility = ViewStates.Visible;
             }
+            else
+                _nsfwMask.Visibility = ViewStates.Gone;
         }
     }
 }

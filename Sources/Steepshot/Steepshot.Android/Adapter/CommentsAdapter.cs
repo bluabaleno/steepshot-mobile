@@ -16,6 +16,7 @@ using Steepshot.Core.Presenters;
 using Steepshot.Utils;
 using System.Threading.Tasks;
 using Com.Bumptech.Glide.Request;
+using Steepshot.Core.Models.Enums;
 
 namespace Steepshot.Adapter
 {

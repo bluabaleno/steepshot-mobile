@@ -20,6 +20,7 @@ using Steepshot.Core.Models;
 using Steepshot.Core.Models.Requests;
 using Steepshot.Core.Authority;
 using Steepshot.Core.Errors;
+using Steepshot.Core.Models.Enums;
 using Steepshot.Interfaces;
 
 namespace Steepshot.Fragment
@@ -303,6 +304,7 @@ namespace Steepshot.Fragment
                 activity._tabLayout.Visibility = ViewStates.Gone;
             _postPager.SetCurrentItem(Presenter.IndexOf(post), false);
             _profilePagerAdapter.CurrentItem = _postPager.CurrentItem;
+            _profilePagerAdapter.NotifyDataSetChanged();
             _postPager.Visibility = ViewStates.Visible;
             _postsList.Visibility = ViewStates.Gone;
         }
@@ -315,6 +317,7 @@ namespace Steepshot.Fragment
                     activity._tabLayout.Visibility = ViewStates.Visible;
                 _postPager.Visibility = ViewStates.Gone;
                 _postsList.Visibility = ViewStates.Visible;
+                _postsList.GetAdapter().NotifyDataSetChanged();
                 if (_postsList.GetAdapter() == ProfileGridAdapter)
                 {
                     var seenItem = _postsList.FindViewHolderForAdapterPosition(_postPager.CurrentItem + 1)?.ItemView
@@ -400,13 +403,13 @@ namespace Steepshot.Fragment
         private async Task UpdatePage(ProfileUpdateType updateType)
         {
             _scrollListner.ClearPosition();
-            await LoadProfile();
             if (updateType == ProfileUpdateType.Full)
             {
                 _listSpinner.Visibility = ViewStates.Visible;
-                await GetUserPosts(true);
-                _listSpinner.Visibility = ViewStates.Gone;
+                GetUserPosts(true).ContinueWith(_ => Activity.RunOnUiThread(() =>
+                     _listSpinner.Visibility = ViewStates.Gone));
             }
+            await LoadProfile();
         }
 
         private void GoBackClick(object sender, EventArgs e)
@@ -439,6 +442,7 @@ namespace Steepshot.Fragment
                     _postsList.RemoveItemDecoration(_gridItemDecoration);
                     _adapter = ProfileFeedAdapter;
                 }
+                _adapter.NotifyDataSetChanged();
                 _postsList.SetAdapter(_adapter);
                 _postsList.ScrollToPosition(_scrollListner.Position);
             }
