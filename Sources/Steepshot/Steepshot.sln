@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.15
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Steepshot.iOS", "Steepshot.iOS\Steepshot.iOS.csproj", "{4B259270-7F8D-4132-91C4-AD144D025A30}"
 EndProject
@@ -41,6 +41,7 @@ Global
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|iPhone.Deploy.0 = Debug|Any CPU
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
 		{1A6A26C2-067B-40ED-A717-7509B633A345}.Release|Any CPU.ActiveCfg = Release|Any CPU
