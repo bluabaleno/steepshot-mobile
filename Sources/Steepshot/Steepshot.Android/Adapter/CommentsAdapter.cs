@@ -170,6 +170,7 @@ namespace Steepshot.Adapter
         private readonly BottomSheetDialog _moreActionsDialog;
         private readonly Context _context;
         private readonly RelativeLayout _rootView;
+        private readonly ImageView _replyIcon;
         private bool isAnimationRuning = false;
 
         private Post _post;
@@ -187,6 +188,7 @@ namespace Steepshot.Adapter
             _time = itemView.FindViewById<TextView>(Resource.Id.time);
             _more = itemView.FindViewById<ImageButton>(Resource.Id.more);
             _rootView = itemView.FindViewById<RelativeLayout>(Resource.Id.root_view);
+            _replyIcon = itemView.FindViewById<ImageView>(Resource.Id.reply_icon);
 
             _reply.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Reply);
 
@@ -477,6 +479,14 @@ namespace Steepshot.Adapter
             else
                 _cost.Visibility = ViewStates.Gone;
             _time.Text = post.Created.ToPostTime();
+
+            if (post.Depth >= 2 && !string.IsNullOrEmpty(post.ParentAuthor))
+            {
+                _replyIcon.Visibility = ViewStates.Visible;
+            }
+
+            // SearchUser() -> MobileAutoTests
+            //var response = Presenter.TryGetAccountInfo("maximm");
         }
 
         private void OnSuccess()

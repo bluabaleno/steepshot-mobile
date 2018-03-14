@@ -205,9 +205,6 @@
     <AndroidResource Include="Resources\layout\lyt_grid_item.axml" />
     <AndroidResource Include="Resources\layout\lyt_description_item.axml" />
     <AndroidResource Include="Resources\layout\lyt_deletion_alert.axml" />
-    <AndroidResource Include="Resources\layout\lyt_comment_reply_item.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\splash.xml" />

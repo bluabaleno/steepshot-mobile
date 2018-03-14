@@ -36,6 +36,8 @@ namespace Steepshot.Core.Models.Common
 
         public string Description { get; set; }
 
+        public string ParentAuthor { get; set; }
+
         public string Title { get; set; }
 
         public string Url { get; set; }
