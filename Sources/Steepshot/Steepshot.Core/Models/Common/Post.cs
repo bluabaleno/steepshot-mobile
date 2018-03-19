@@ -38,6 +38,8 @@ namespace Steepshot.Core.Models.Common
 
         public string ParentAuthor { get; set; }
 
+        public string ParentPermlink { get; set; }
+
         public string Title { get; set; }
 
         public string Url { get; set; }
