@@ -10,13 +10,14 @@ using Steepshot.Core.Models.Common;
 using Steepshot.Core.Models.Requests;
 using Steepshot.Core.Models.Responses;
 using Steepshot.Core.Serializing;
-using DitchFollowType = Ditch.Steem.Enums.FollowType;
 using DitchBeneficiary = Ditch.Steem.Operations.Beneficiary;
 using Ditch.Core;
-using Ditch.Steem.Objects;
+using Ditch.Steem.Models.Args;
 using Steepshot.Core.Errors;
 using Steepshot.Core.Models.Enums;
 using Steepshot.Core.Localization;
+using Ditch.Steem.Models.Objects;
+using Ditch.Steem.Models;
 
 namespace Steepshot.Core.HttpClient
 {
@@ -88,14 +89,19 @@ namespace Steepshot.Core.HttpClient
                 if (!resp.IsError)
                 {
                     var dt = DateTime.Now;
-                    var content = _operationManager.GetContent(model.Author, model.Permlink, ct);
-                    if (!content.IsError)
+                    var args = new FindCommentsArgs()
                     {
+                        Comments = new[] { new[] { model.Author, model.Permlink } }
+                    };
+                    var content = _operationManager.FindComments(args, ct);
+                    if (!content.IsError && content.Result.Comments.Any())
+                    {
+                        var comment = content.Result.Comments[0];
                         //Convert Asset type to double
                         result.Result = new VoteResponse(true)
                         {
-                            NewTotalPayoutReward = content.Result.TotalPayoutValue + content.Result.CuratorPayoutValue + content.Result.PendingPayoutValue,
-                            NetVotes = content.Result.NetVotes,
+                           // NewTotalPayoutReward = //comment.TotalPayoutValue + comment.CuratorPayoutValue + comment.PendingPayoutValue,
+                            NetVotes = comment.NetVotes,
                             VoteTime = dt
                         };
                     }
@@ -120,7 +126,7 @@ namespace Steepshot.Core.HttpClient
                     return new OperationResult<VoidResponse>(new AppError(LocalizationKeys.WrongPrivatePostingKey));
 
                 var op = model.Type == FollowType.Follow
-                    ? new FollowOperation(model.Login, model.Username, DitchFollowType.Blog, model.Login)
+                    ? new FollowOperation(model.Login, model.Username, Ditch.Steem.Models.Enums.FollowType.Blog, model.Login)
                     : new UnfollowOperation(model.Login, model.Username, model.Login);
                 var resp = _operationManager.BroadcastOperationsSynchronous(keys, ct, op);
 
@@ -146,7 +152,7 @@ namespace Steepshot.Core.HttpClient
                 if (keys == null)
                     return new OperationResult<VoidResponse>(new AppError(LocalizationKeys.WrongPrivatePostingKey));
 
-                var op = new FollowOperation(model.Login, "steepshot", DitchFollowType.Blog, model.Login);
+                var op = new FollowOperation(model.Login, "steepshot", Ditch.Steem.Models.Enums.FollowType.Blog, model.Login);
                 var resp = _operationManager.VerifyAuthority(keys, ct, op);
 
                 var result = new OperationResult<VoidResponse>();
@@ -159,7 +165,7 @@ namespace Steepshot.Core.HttpClient
                 return result;
             }, ct);
         }
-        
+
         public override async Task<OperationResult<VoidResponse>> CreateOrEdit(CommentModel model, CancellationToken ct)
         {
             return await Task.Run(() =>
@@ -182,7 +188,7 @@ namespace Steepshot.Core.HttpClient
                     ops = new BaseOperation[]
                     {
                         op,
-                        new BeneficiariesOperation(model.Login, model.Permlink, _operationManager.SbdSymbol, beneficiaries)
+                        new BeneficiariesOperation(model.Login, model.Permlink, new Asset(1000000000, Config.SteemAssetNumSbd), beneficiaries)
                     };
                 }
                 else
@@ -238,7 +244,9 @@ namespace Steepshot.Core.HttpClient
                 if (keys == null)
                     return new OperationResult<VoidResponse>(new AppError(LocalizationKeys.WrongPrivateActimeKey));
 
-                var resp = _operationManager.LookupAccountNames(new[] { model.Login }, CancellationToken.None);
+                var args = new FindAccountsArgs { Accounts = new[] { model.Login } };
+
+                var resp = _operationManager.FindAccounts(args, CancellationToken.None);
                 var result = new OperationResult<VoidResponse>();
                 if (resp.IsError)
                 {
@@ -246,7 +254,7 @@ namespace Steepshot.Core.HttpClient
                     return result;
                 }
 
-                var profile = resp.Result.Length == 1 ? resp.Result[0] : null;
+                var profile = resp.Result?.Accounts.Length == 1 ? resp.Result?.Accounts[0] : null;
                 if (profile == null)
                 {
                     result.Error = new BlockchainError(LocalizationKeys.UnexpectedProfileData);
@@ -281,7 +289,7 @@ namespace Steepshot.Core.HttpClient
 
             return await Task.Run(() =>
             {
-                var op = new FollowOperation(model.Login, "steepshot", DitchFollowType.Blog, model.Login);
+                var op = new FollowOperation(model.Login, "steepshot", Ditch.Steem.Models.Enums.FollowType.Blog, model.Login);
                 var properties = new DynamicGlobalPropertyApiObj
                 {
                     HeadBlockId = Hex.ToString(_operationManager.ChainId),
