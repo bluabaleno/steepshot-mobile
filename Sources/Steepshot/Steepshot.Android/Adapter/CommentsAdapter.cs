@@ -18,6 +18,8 @@ using Android.App;
 using Steepshot.Core.Localization;
 using Steepshot.Core.Models.Enums;
 using Steepshot.Core.Utils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Steepshot.Adapter
 {
@@ -26,6 +28,7 @@ namespace Steepshot.Adapter
         private readonly CommentsPresenter _presenter;
         private readonly Context _context;
         private readonly Post _post;
+        private List<Post> _sortedPosts;
         public Action<ActionType, Post> CommentAction;
         public Action RootClickAction;
         public Action<string> TagAction;
@@ -39,9 +42,36 @@ namespace Steepshot.Adapter
             _post = post;
         }
 
+        private Post GetSortedItem(int id)
+        {
+            if (_sortedPosts == null)
+            {
+                var posts = new List<Post>();
+                int maxDepth = 0;
+
+                for (int i = 0; i < _presenter.Count; i++)
+                {
+                    posts.Add(_presenter[i]);
+                    if (_presenter[i].Depth > maxDepth)
+                        maxDepth = _presenter[i].Depth;
+                }
+
+                _sortedPosts = posts;
+
+                for (int i = 1; i < maxDepth; i++)
+                {
+                    _sortedPosts = _sortedPosts.GroupBy(s => !string.IsNullOrEmpty(s.ParentPermlink) && s.Depth > i ? s.ParentPermlink : s.Permlink)
+                                               .SelectMany(group => group).ToList();
+                }
+            }
+
+            return _sortedPosts[id];
+        }
+
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            var post = position == 0 ? _post : _presenter[position - 1];
+            var post = position == 0 ? _post : GetSortedItem(position - 1);
+
             if (post == null)
                 return;
             if (position == 0)
@@ -483,10 +513,12 @@ namespace Steepshot.Adapter
             if (post.Depth >= 2 && !string.IsNullOrEmpty(post.ParentAuthor))
             {
                 _replyIcon.Visibility = ViewStates.Visible;
-            }
 
-            // SearchUser() -> MobileAutoTests
-            //var response = Presenter.TryGetAccountInfo("maximm");
+                if (!string.IsNullOrEmpty(post.ParentPermlink))
+                {
+                    
+                }
+            }
         }
 
         private void OnSuccess()
