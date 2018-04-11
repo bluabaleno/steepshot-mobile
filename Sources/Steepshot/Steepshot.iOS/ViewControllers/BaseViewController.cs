@@ -4,15 +4,16 @@ using System.Text.RegularExpressions;
 using CoreGraphics;
 using Foundation;
 using Steepshot.Core.Errors;
-using Steepshot.Core.Models.Common;
 using Steepshot.Core.Presenters;
 using UIKit;
 using Steepshot.Core.Localization;
 using Steepshot.Core.Utils;
+using PureLayout.Net;
+using Steepshot.iOS.Helpers;
 
 namespace Steepshot.iOS.ViewControllers
 {
-    public class BaseViewController : UIViewController
+    public class BaseViewController : UIViewController, IWillEnterForeground
     {
         private static readonly CultureInfo CultureInfo = CultureInfo.InvariantCulture;
 
@@ -27,6 +28,8 @@ namespace Steepshot.iOS.ViewControllers
         protected NSObject ShowKeyboardToken;
         protected NSObject CloseKeyboardToken;
         protected NSObject ForegroundToken;
+        private static readonly nfloat _textSideMargin = 10;
+        private static readonly nfloat _alertWidth = 270;
 
         public static bool ShouldProfileUpdate { get; set; }
 
@@ -44,14 +47,28 @@ namespace Steepshot.iOS.ViewControllers
 
             CloseKeyboardToken = NSNotificationCenter.DefaultCenter.AddObserver
             (UIKeyboard.WillHideNotification, KeyBoardDownNotification);
+            if (TabBarController != null)
+                ((MainTabBarController)TabBarController).WillEnterForegroundAction += WillEnterForeground;
+
+            Services.GAService.Instance.TrackAppPage(GetType().Name);
+        }
+
+        public void WillEnterForeground()
+        {
+            View.EndEditing(true);
         }
 
         public override void ViewDidDisappear(bool animated)
         {
-            NSNotificationCenter.DefaultCenter.RemoveObservers(new[] { CloseKeyboardToken, ShowKeyboardToken, ForegroundToken });
-            ShowKeyboardToken.Dispose();
-            CloseKeyboardToken.Dispose();
-            ForegroundToken.Dispose();
+            if (TabBarController != null)
+                ((MainTabBarController)TabBarController).WillEnterForegroundAction -= WillEnterForeground;
+            if (ShowKeyboardToken != null)
+            {
+                NSNotificationCenter.DefaultCenter.RemoveObservers(new[] { CloseKeyboardToken, ShowKeyboardToken, ForegroundToken });
+                ShowKeyboardToken.Dispose();
+                CloseKeyboardToken.Dispose();
+                ForegroundToken.Dispose();
+            }
             base.ViewDidDisappear(animated);
         }
 
@@ -117,6 +134,92 @@ namespace Steepshot.iOS.ViewControllers
             PresentViewController(alert, true, null);
         }
 
+        protected void ShowCustomAlert(LocalizationKeys key, UIView viewToStartEditing)
+        {
+            var message = AppSettings.LocalizationManager.GetText(key);
+            var popup = new UIView();
+            popup.Frame = new CGRect(0, 0, UIScreen.MainScreen.Bounds.Width, UIScreen.MainScreen.Bounds.Height);
+            popup.BackgroundColor = UIColor.Black.ColorWithAlpha(0.5f);
+            popup.UserInteractionEnabled = true;
+
+            var blur = UIBlurEffect.FromStyle(UIBlurEffectStyle.ExtraLight);
+            var blurView = new UIVisualEffectView(blur);
+            blurView.ClipsToBounds = true;
+            blurView.Layer.CornerRadius = 15;
+            popup.AddSubview(blurView);
+
+            blurView.AutoCenterInSuperview();
+            blurView.AutoSetDimension(ALDimension.Width, _alertWidth);
+
+            var okButton = new UIButton();
+            okButton.SetTitle("Ok", UIControlState.Normal);
+            okButton.SetTitleColor(UIColor.Blue, UIControlState.Normal);
+            blurView.ContentView.AddSubview(okButton);
+
+            okButton.AutoPinEdge(ALEdge.Bottom, ALEdge.Bottom, blurView);
+            okButton.AutoPinEdge(ALEdge.Left, ALEdge.Left, blurView);
+            okButton.AutoPinEdge(ALEdge.Right, ALEdge.Right, blurView);
+            okButton.AutoSetDimension(ALDimension.Height, 50);
+
+            var textView = new UITextView();
+            textView.DataDetectorTypes = UIDataDetectorType.Link;
+            textView.UserInteractionEnabled = true;
+            textView.Editable = false;
+            textView.Font = Constants.Semibold16;
+            textView.TextAlignment = UITextAlignment.Center;
+            textView.Text = message;
+            textView.BackgroundColor = UIColor.Clear;
+            blurView.ContentView.AddSubview(textView);
+
+            textView.AutoPinEdge(ALEdge.Top, ALEdge.Top, blurView, 7);
+            textView.AutoPinEdge(ALEdge.Left, ALEdge.Left, blurView, _textSideMargin);
+            textView.AutoPinEdge(ALEdge.Right, ALEdge.Right, blurView, -_textSideMargin);
+
+            var size = textView.SizeThatFits(new CGSize(_alertWidth - _textSideMargin * 2, 0));
+            textView.AutoSetDimension(ALDimension.Height, size.Height + 7);
+
+            var separator = new UIView();
+            separator.BackgroundColor = UIColor.LightGray;
+            blurView.ContentView.AddSubview(separator);
+
+            separator.AutoPinEdge(ALEdge.Top, ALEdge.Bottom, textView, 0);
+            separator.AutoPinEdge(ALEdge.Bottom, ALEdge.Top, okButton);
+            separator.AutoPinEdge(ALEdge.Left, ALEdge.Left, blurView);
+            separator.AutoPinEdge(ALEdge.Right, ALEdge.Right, blurView);
+            separator.AutoSetDimension(ALDimension.Height, 1);
+
+            ((InteractivePopNavigationController)NavigationController).IsPushingViewController = true;
+
+            okButton.TouchDown += (sender, e) =>
+            {
+                viewToStartEditing?.BecomeFirstResponder();
+                ((InteractivePopNavigationController)NavigationController).IsPushingViewController = false;
+                popup.RemoveFromSuperview();
+            };
+
+            NavigationController.View.EndEditing(true);
+            NavigationController.View.AddSubview(popup);
+
+            blurView.Transform = CGAffineTransform.Scale(CGAffineTransform.MakeIdentity(), 0.001f, 0.001f);
+
+            UIView.Animate(0.1, () =>
+            {
+                blurView.Transform = CGAffineTransform.Scale(CGAffineTransform.MakeIdentity(), 1.1f, 1.1f);
+            }, () =>
+            {
+                UIView.Animate(0.1, () =>
+                {
+                    blurView.Transform = CGAffineTransform.Scale(CGAffineTransform.MakeIdentity(), 0.9f, 0.9f);
+                }, () =>
+                {
+                    UIView.Animate(0.1, () =>
+                    {
+                        blurView.Transform = CGAffineTransform.MakeIdentity();
+                    }, null);
+                });
+            });
+        }
+
         protected void ShowAlert(ErrorBase error)
         {
             if (error == null || error is CanceledError)
@@ -131,11 +234,11 @@ namespace Steepshot.iOS.ViewControllers
             {
                 if (error is BlockchainError blError)
                 {
-                    AppSettings.Reporter.SendMessage($"New message: {blError.FullMessage}");
+                    AppSettings.Reporter.SendMessage($"New message: {LocalizationManager.NormalizeKey(blError.Message)}{Environment.NewLine}Full Message:{blError.FullMessage}");
                 }
                 else
                 {
-                    AppSettings.Reporter.SendMessage($"New message: {message}");
+                    AppSettings.Reporter.SendMessage($"New message: {LocalizationManager.NormalizeKey(message)}");
                 }
                 message = nameof(LocalizationKeys.UnexpectedError);
             }
@@ -159,11 +262,11 @@ namespace Steepshot.iOS.ViewControllers
             {
                 if (error is BlockchainError blError)
                 {
-                    AppSettings.Reporter.SendMessage($"New message: {blError.FullMessage}");
+                    AppSettings.Reporter.SendMessage($"New message: {LocalizationManager.NormalizeKey(blError.Message)}{Environment.NewLine}Full Message:{blError.FullMessage}");
                 }
                 else
                 {
-                    AppSettings.Reporter.SendMessage($"New message: {message}");
+                    AppSettings.Reporter.SendMessage($"New message: {LocalizationManager.NormalizeKey(message)}");
                 }
                 message = nameof(LocalizationKeys.UnexpectedError);
             }
@@ -173,5 +276,10 @@ namespace Steepshot.iOS.ViewControllers
             alert.AddAction(UIAlertAction.Create(lm.GetText(rightButtonText), UIAlertActionStyle.Default, rightButtonAction));
             PresentViewController(alert, true, null);
         }
+    }
+
+    public interface IWillEnterForeground
+    {
+        void WillEnterForeground();
     }
 }

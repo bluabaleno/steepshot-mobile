@@ -6,7 +6,7 @@ using Android.OS;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Steepshot.Adapter;
 using Steepshot.Base;
 using Steepshot.Core;
@@ -27,28 +27,28 @@ namespace Steepshot.Activity
         private bool _nsfwChanged;
 
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.add_account)] private Button _addButton;
-        [InjectView(Resource.Id.dtn_terms_of_service)] private Button _termsButton;
-        [InjectView(Resource.Id.tests)] private AppCompatButton _testsButton;
-        [InjectView(Resource.Id.btn_guide)] private Button _guideButton;
-        [InjectView(Resource.Id.nsfw_switch)] private SwitchCompat _nsfwSwitcher;
-        [InjectView(Resource.Id.low_switch)] private SwitchCompat _lowRatedSwitcher;
-        [InjectView(Resource.Id.version_textview)] private TextView _versionText;
-        [InjectView(Resource.Id.nsfw_switch_text)] private TextView _nsfwSwitchText;
-        [InjectView(Resource.Id.low_switch_text)] private TextView _lowSwitchText;
-        [InjectView(Resource.Id.profile_login)] private TextView _viewTitle;
-        [InjectView(Resource.Id.btn_switcher)] private ImageButton _switcher;
-        [InjectView(Resource.Id.btn_settings)] private ImageButton _settings;
-        [InjectView(Resource.Id.btn_back)] private ImageButton _backButton;
-        [InjectView(Resource.Id.accounts_list)] private RecyclerView _accountsList;
-        [InjectView(Resource.Id.add_account_loading_spinner)] private ProgressBar _addAccountLoader;
+        [BindView(Resource.Id.add_account)] private Button _addButton;
+        [BindView(Resource.Id.dtn_terms_of_service)] private Button _termsButton;
+        [BindView(Resource.Id.tests)] private AppCompatButton _testsButton;
+        [BindView(Resource.Id.btn_guide)] private Button _guideButton;
+        [BindView(Resource.Id.nsfw_switch)] private SwitchCompat _nsfwSwitcher;
+        [BindView(Resource.Id.low_switch)] private SwitchCompat _lowRatedSwitcher;
+        [BindView(Resource.Id.version_textview)] private TextView _versionText;
+        [BindView(Resource.Id.nsfw_switch_text)] private TextView _nsfwSwitchText;
+        [BindView(Resource.Id.low_switch_text)] private TextView _lowSwitchText;
+        [BindView(Resource.Id.profile_login)] private TextView _viewTitle;
+        [BindView(Resource.Id.btn_switcher)] private ImageButton _switcher;
+        [BindView(Resource.Id.btn_settings)] private ImageButton _settings;
+        [BindView(Resource.Id.btn_back)] private ImageButton _backButton;
+        [BindView(Resource.Id.accounts_list)] private RecyclerView _accountsList;
+        [BindView(Resource.Id.add_account_loading_spinner)] private ProgressBar _addAccountLoader;
 #pragma warning restore 0649
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.lyt_settings);
-            Cheeseknife.Inject(this);
+            Cheeseknife.Bind(this);
 
             var appInfoService = AppSettings.AppInfo;
             var accounts = BasePresenter.User.GetAllAccounts();

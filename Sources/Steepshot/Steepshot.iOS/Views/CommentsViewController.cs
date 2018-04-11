@@ -193,6 +193,8 @@ namespace Steepshot.iOS.Views
 
             var error = await _presenter.TryVote(post);
             ShowAlert(error);
+            if (error == null)
+                ((MainTabBarController)TabBarController)?.UpdateProfile();
         }
 
         public async Task FlagComment(Post post)
@@ -205,6 +207,8 @@ namespace Steepshot.iOS.Views
 
             var error = await _presenter.TryFlag(post);
             ShowAlert(error);
+            if (error == null)
+                ((MainTabBarController)TabBarController)?.UpdateProfile();
         }
 
         private async void CreateComment(object sender, EventArgs e)
@@ -225,12 +229,16 @@ namespace Steepshot.iOS.Views
                 commentTextView.Text = string.Empty;
                 _commentsTextViewDelegate.Placeholder.Hidden = false;
                 commentTextView.ResignFirstResponder();
+                commentTextView.Frame = new CGRect(commentTextView.Frame.Location, new CGSize(commentTextView.Frame.Width, 40));
+                bottomView.Frame = new CGRect(bottomView.Frame.Location, new CGSize(bottomView.Frame.Width, 60));
+                commentsTable.Frame = new CGRect(commentsTable.Frame.Location,
+                                                 new CGSize(commentsTable.Frame.Width, UIScreen.MainScreen.Bounds.Height - bottomView.Frame.Height - View.Frame.Y));
 
                 var error = await _presenter.TryLoadNextComments(Post);
 
                 ShowAlert(error);
-
-                commentsTable.ScrollToRow(NSIndexPath.FromRowSection(_presenter.Count - 1, 0), UITableViewScrollPosition.Bottom, true);
+                if (_presenter.Count > 0)
+                    commentsTable.ScrollToRow(NSIndexPath.FromRowSection(_presenter.Count - 1, 0), UITableViewScrollPosition.Bottom, true);
                 Post.Children++;
             }
             else

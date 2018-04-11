@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.props" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhoneSimulator</Platform>
@@ -26,9 +27,9 @@
     <IOSDebuggerPort>38792</IOSDebuggerPort>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
-    <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
+    <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchTlsProvider>Default</MtouchTlsProvider>
-    <DeviceSpecificBuild>false</DeviceSpecificBuild>
+    <DeviceSpecificBuild>true</DeviceSpecificBuild>
     <CodesignProvision>
     </CodesignProvision>
     <LangVersion>Default</LangVersion>
@@ -64,7 +65,7 @@
     <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
-    <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
+    <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchTlsProvider>Default</MtouchTlsProvider>
     <LangVersion>Default</LangVersion>
   </PropertyGroup>
@@ -82,12 +83,10 @@
     <MtouchFastDev>true</MtouchFastDev>
     <MtouchFloat32>true</MtouchFloat32>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-    <MtouchLink>SdkOnly</MtouchLink>
+    <MtouchLink>None</MtouchLink>
     <MtouchArch>ARMv7, ARM64</MtouchArch>
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchTlsProvider>Default</MtouchTlsProvider>
-    <CodesignProvision>
-    </CodesignProvision>
     <LangVersion>Default</LangVersion>
     <MtouchProfiling>false</MtouchProfiling>
     <IOSDebugOverWiFi>false</IOSDebugOverWiFi>
@@ -101,103 +100,120 @@
     <OutputPath>bin\x86\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac, Version=4.6.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autofac.4.6.2\lib\netstandard1.1\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=4.7.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.7.0\lib\netstandard1.1\Autofac.dll</HintPath>
     </Reference>
     <Reference Include="Cryptography.ECDSA, Version=2.1.0.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Cryptography.ECDSA.Secp256k1.1.0.1\lib\netstandard1.3\Cryptography.ECDSA.dll</HintPath>
     </Reference>
-    <Reference Include="Ditch.Core, Version=3.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ditch.Core.3.0.9\lib\netstandard2.0\Ditch.Core.dll</HintPath>
+    <Reference Include="Ditch.Core, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ditch.Core.3.1.0\lib\netstandard2.0\Ditch.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Ditch.Golos, Version=3.0.12.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ditch.Golos.3.0.12\lib\netstandard2.0\Ditch.Golos.dll</HintPath>
+    <Reference Include="Ditch.Golos, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ditch.Golos.3.1.0\lib\netstandard2.0\Ditch.Golos.dll</HintPath>
     </Reference>
-    <Reference Include="Ditch.Steem, Version=3.0.12.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ditch.Steem.3.0.12\lib\netstandard2.0\Ditch.Steem.dll</HintPath>
+    <Reference Include="Ditch.Steem, Version=3.0.13.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ditch.Steem.3.0.13\lib\netstandard2.0\Ditch.Steem.dll</HintPath>
     </Reference>
     <Reference Include="iOSDeviceModel, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\iOSDeviceModel.1.1.0\lib\Xamarin.iOS10\iOSDeviceModel.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Plugin.Connectivity, Version=3.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xam.Plugin.Connectivity.3.0.3\lib\Xamarin.iOS10\Plugin.Connectivity.dll</HintPath>
-    </Reference>
-    <Reference Include="Plugin.Connectivity.Abstractions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xam.Plugin.Connectivity.3.0.3\lib\Xamarin.iOS10\Plugin.Connectivity.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine, Version=0.9.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
-      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.9.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebSocket4Net, Version=0.15.1.10, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocket4Net.0.15.1\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.iOS" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Data" />
-    <Reference Include="ZXing.Net.Mobile.Core, Version=2.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.Mobile.2.3.2\lib\Xamarin.iOS10\ZXing.Net.Mobile.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="zxing.portable, Version=2.3.2.0, Culture=neutral, PublicKeyToken=830ae994e36ac27d, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.Mobile.2.3.2\lib\Xamarin.iOS10\zxing.portable.dll</HintPath>
-    </Reference>
-    <Reference Include="ZXingNetMobile, Version=2.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.Mobile.2.3.2\lib\Xamarin.iOS10\ZXingNetMobile.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.TTTAttributedLabel">
       <HintPath>..\packages\Xamarin.TTTAttributedLabel.2.0.0.2\lib\Xamarin.iOS\Xamarin.TTTAttributedLabel.dll</HintPath>
     </Reference>
-    <Reference Include="PureLayout.Net">
-      <HintPath>..\packages\PureLayout.Net.1.0.0\lib\xamarinios10\PureLayout.Net.dll</HintPath>
+    <Reference Include="PureLayout.Net, Version=1.0.6645.26525, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PureLayout.Net.1.0.1\lib\xamarinios10\PureLayout.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="FFImageLoading, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xamarin.FFImageLoading.2.3.6\lib\Xamarin.iOS10\FFImageLoading.dll</HintPath>
+    </Reference>
+    <Reference Include="FFImageLoading.Platform, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xamarin.FFImageLoading.2.3.6\lib\Xamarin.iOS10\FFImageLoading.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Connectivity.Abstractions">
+      <HintPath>..\packages\Xam.Plugin.Connectivity.3.1.1\lib\Xamarin.iOS10\Plugin.Connectivity.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Plugin.Connectivity">
+      <HintPath>..\packages\Xam.Plugin.Connectivity.3.1.1\lib\Xamarin.iOS10\Plugin.Connectivity.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine">
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.10.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="WebP.Touch">
-      <HintPath>..\packages\WebP.Touch.1.0.7\lib\Xamarin.iOS10\WebP.Touch.dll</HintPath>
+      <HintPath>..\packages\WebP.Touch.1.0.8\lib\Xamarin.iOS10\WebP.Touch.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="FFImageLoading">
-      <HintPath>..\packages\Xamarin.FFImageLoading.2.3.4\lib\Xamarin.iOS10\FFImageLoading.dll</HintPath>
+    <Reference Include="Google.Analytics">
+      <HintPath>..\packages\Xamarin.Google.iOS.Analytics.3.17.0.2\lib\Xamarin.iOS10\Google.Analytics.dll</HintPath>
     </Reference>
-    <Reference Include="FFImageLoading.Platform">
-      <HintPath>..\packages\Xamarin.FFImageLoading.2.3.4\lib\Xamarin.iOS10\FFImageLoading.Platform.dll</HintPath>
+    <Reference Include="ZXing.Net.Mobile.Core, Version=2.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.Mobile.2.4.1\lib\Xamarin.iOS10\ZXing.Net.Mobile.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="zxing.portable, Version=0.16.2.0, Culture=neutral, PublicKeyToken=830ae994e36ac27d, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.Mobile.2.4.1\lib\Xamarin.iOS10\zxing.portable.dll</HintPath>
+    </Reference>
+    <Reference Include="ZXingNetMobile, Version=2.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.Mobile.2.4.1\lib\Xamarin.iOS10\ZXingNetMobile.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
-      <InProject>false</InProject>
+      <Visible>false</Visible>
     </ImageAsset>
     <ImageAsset Include="Assets.xcassets\Contents.json">
-      <InProject>false</InProject>
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\120x120.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small-40%402x.png">
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\180x180.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small-40%403x.png">
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\80x80.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-60%402x.png">
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\87x87.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-60%403x.png">
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\58x58.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iTunesArtwork%402x.png">
+      <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\1024x1024.png">
-      <InProject>false</InProject>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small%403x.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small%402x.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-76.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-76%402x.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small.png">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Icon-Small-40.png">
+      <Visible>false</Visible>
     </ImageAsset>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
-    <InterfaceDefinition Include="Main.storyboard" />
-    <InterfaceDefinition Include="Cells\PhotoCollectionViewCell.xib" />
     <InterfaceDefinition Include="Cells\TagCollectionViewCell.xib" />
     <InterfaceDefinition Include="Cells\FollowViewCell.xib" />
     <InterfaceDefinition Include="Cells\CommentTableViewCell.xib" />
@@ -223,6 +239,9 @@
     <InterfaceDefinition Include="Cells\LocalTagCollectionViewCell.xib" />
     <InterfaceDefinition Include="Cells\TagTableViewCell.xib" />
     <InterfaceDefinition Include="Cells\AccountTableViewCell.xib" />
+    <InterfaceDefinition Include="Views\PhotoPreviewViewController.xib" />
+    <InterfaceDefinition Include="Views\PostViewController.xib" />
+    <InterfaceDefinition Include="Views\TagsPickerViewController.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -370,29 +389,38 @@
     <Compile Include="Cells\NewFeedCollectionViewCell.cs" />
     <Compile Include="Helpers\CellHeightCalculator.cs" />
     <Compile Include="Models\CellSizeHelper.cs" />
+    <Compile Include="Helpers\PostTitleTextViewDelegate.cs" />
+    <Compile Include="Views\PhotoPreviewViewController.cs" />
+    <Compile Include="Views\PhotoPreviewViewController.designer.cs">
+      <DependentUpon>PhotoPreviewViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PostViewController.cs" />
+    <Compile Include="Views\PostViewController.designer.cs">
+      <DependentUpon>PostViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cells\SliderFeedCollectionViewCell.cs" />
+    <Compile Include="Services\GAService.cs" />
+    <Compile Include="Helpers\CircleFrame.cs" />
+    <Compile Include="Helpers\ImageHelper.cs" />
+    <Compile Include="Views\TagsPickerViewController.cs" />
+    <Compile Include="Views\TagsPickerViewController.designer.cs">
+      <DependentUpon>TagsPickerViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSources\PhotoGalleryViewSource.cs" />
+    <Compile Include="Cells\PhotoGalleryCell.cs" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\ic_photo_holder.png" />
-    <BundleResource Include="Resources\ic_user_placeholder.png" />
-    <BundleResource Include="Resources\ic_conversation.png" />
-    <BundleResource Include="Resources\ic_cross.png" />
-    <BundleResource Include="Resources\ic_micro_heart.png" />
     <BundleResource Include="Resources\eye%402x.png" />
     <BundleResource Include="Resources\eye%403x.png" />
-    <BundleResource Include="Resources\Fonts\Lato-Bold.ttf" />
-    <BundleResource Include="Resources\Fonts\Lato-Heavy.ttf" />
     <BundleResource Include="Resources\rotate%402x.png" />
     <BundleResource Include="Resources\rotate%403x.png" />
-    <BundleResource Include="Resources\Fonts\Lato-Regular.ttf" />
-    <BundleResource Include="Resources\Fonts\Lato-Semibold.ttf" />
     <BundleResource Include="Resources\search%402x.png" />
     <BundleResource Include="Resources\search%403x.png" />
-    <BundleResource Include="Resources\ic_search_small.png" />
     <BundleResource Include="Resources\ic_search_small%402x.png" />
     <BundleResource Include="Resources\ic_search_small%403x.png" />
     <BundleResource Include="Resources\ic_more%402x.png" />
     <BundleResource Include="Resources\ic_more%403x.png" />
-    <BundleResource Include="Resources\ic_like.png" />
     <BundleResource Include="Resources\ic_like%402x.png" />
     <BundleResource Include="Resources\ic_like%403x.png" />
     <BundleResource Include="Resources\ic_noavatar%402x.png" />
@@ -400,24 +428,14 @@
     <BundleResource Include="Resources\Fonts\OpenSans-Light.ttf" />
     <BundleResource Include="Resources\Fonts\OpenSans-Regular.ttf" />
     <BundleResource Include="Resources\Fonts\OpenSans-Semibold.ttf" />
-    <BundleResource Include="Resources\ic_welcome_background.png" />
     <BundleResource Include="Resources\ic_welcome_background%402x.png" />
     <BundleResource Include="Resources\ic_welcome_background%403x.png" />
-    <BundleResource Include="Resources\ic_logo.png" />
-    <BundleResource Include="Resources\ic_logo%402x.png" />
-    <BundleResource Include="Resources\ic_logo%403x.png" />
     <BundleResource Include="Resources\ic_back_arrow%402x.png" />
     <BundleResource Include="Resources\ic_back_arrow%403x.png" />
-    <BundleResource Include="Resources\ic_splash_logo.png" />
-    <BundleResource Include="Resources\ic_splash_logo%402x.png" />
-    <BundleResource Include="Resources\ic_splash_logo%403x.png" />
-    <BundleResource Include="Resources\ic_feed_logo.png" />
     <BundleResource Include="Resources\ic_feed_logo%402x.png" />
     <BundleResource Include="Resources\ic_feed_logo%403x.png" />
-    <BundleResource Include="Resources\ic_send_comment.png" />
     <BundleResource Include="Resources\ic_send_comment%402x.png" />
     <BundleResource Include="Resources\ic_send_comment%403x.png" />
-    <BundleResource Include="Resources\ic_like_active.png" />
     <BundleResource Include="Resources\ic_like_active%402x.png" />
     <BundleResource Include="Resources\ic_like_active%403x.png" />
     <BundleResource Include="Resources\ic_home%402x.png" />
@@ -428,10 +446,8 @@
     <BundleResource Include="Resources\ic_create%403x.png" />
     <BundleResource Include="Resources\ic_сamera_shot%402x.png" />
     <BundleResource Include="Resources\ic_сamera_shot%403x.png" />
-    <BundleResource Include="Resources\ic_revert.png" />
     <BundleResource Include="Resources\ic_revert%402x.png" />
     <BundleResource Include="Resources\ic_revert%403x.png" />
-    <BundleResource Include="Resources\ic_white_close.png" />
     <BundleResource Include="Resources\ic_white_close%402x.png" />
     <BundleResource Include="Resources\ic_white_close%403x.png" />
     <BundleResource Include="Resources\ic_flash%402x.png" />
@@ -442,10 +458,8 @@
     <BundleResource Include="Resources\ic_close_black%403x.png" />
     <BundleResource Include="Resources\ic_forward%402x.png" />
     <BundleResource Include="Resources\ic_forward%403x.png" />
-    <BundleResource Include="Resources\ic_activated.png" />
     <BundleResource Include="Resources\ic_activated%402x.png" />
     <BundleResource Include="Resources\ic_activated%403x.png" />
-    <BundleResource Include="Resources\ic_deactivated.png" />
     <BundleResource Include="Resources\ic_deactivated%402x.png" />
     <BundleResource Include="Resources\ic_deactivated%403x.png" />
     <BundleResource Include="Resources\ic_grid_nonactive%402x.png" />
@@ -458,6 +472,36 @@
     <BundleResource Include="Resources\ic_profile%403x.png" />
     <BundleResource Include="Resources\ic_rotate%402x.png" />
     <BundleResource Include="Resources\ic_rotate%403x.png" />
+    <BundleResource Include="Resources\ic_grid_active%402x.png" />
+    <BundleResource Include="Resources\ic_grid_active%403x.png" />
+    <BundleResource Include="Resources\ic_logo_main%402x.png" />
+    <BundleResource Include="Resources\ic_logo_main%403x.png" />
+    <BundleResource Include="Resources\ic_forward_arrow%402x.png" />
+    <BundleResource Include="Resources\ic_forward_arrow%403x.png" />
+    <BundleResource Include="Resources\ic_gallery%402x.png" />
+    <BundleResource Include="Resources\ic_gallery%403x.png" />
+    <BundleResource Include="Resources\ic_white_heart%402x.png" />
+    <BundleResource Include="Resources\ic_white_heart%403x.png" />
+    <BundleResource Include="Resources\ic_multiselect%402x.png" />
+    <BundleResource Include="Resources\ic_multiselect%403x.png" />
+    <BundleResource Include="Resources\ic_multiselect_active%403x.png" />
+    <BundleResource Include="Resources\ic_multiselect_active%402x.png" />
+    <BundleResource Include="Resources\ic_hash%403x.png" />
+    <BundleResource Include="Resources\ic_hash%402x.png" />
+    <BundleResource Include="Resources\ic_close_tag%402x.png" />
+    <BundleResource Include="Resources\ic_close_tag%403x.png" />
+    <BundleResource Include="Resources\ic_hash_micro%403x.png" />
+    <BundleResource Include="Resources\ic_hash_micro%402x.png" />
+    <BundleResource Include="Resources\ic_hash_active%402x.png" />
+    <BundleResource Include="Resources\ic_hash_active%403x.png" />
+    <BundleResource Include="Resources\ic_add_tag%403x.png" />
+    <BundleResource Include="Resources\ic_add_tag%402x.png" />
+    <BundleResource Include="Resources\ic_delete_tag%402x.png" />
+    <BundleResource Include="Resources\ic_delete_tag%403x.png" />
+    <BundleResource Include="Resources\ic_resize%402x.png" />
+    <BundleResource Include="Resources\ic_resize%403x.png" />
+    <BundleResource Include="Resources\ic_is_gallery%403x.png" />
+    <BundleResource Include="Resources\ic_is_gallery%402x.png" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="..\Steepshot.Android\Assets\Localization.en-us.txt">
@@ -487,5 +531,15 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Insights.1.12.3\build\Xamarin.iOS10\Xamarin.Insights.targets" Condition="Exists('..\packages\Xamarin.Insights.1.12.3\build\Xamarin.iOS10\Xamarin.Insights.targets')" />
-  <Import Project="..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.1\build\netstandard2.0\NETStandard.Library.targets')" />
+  <Import Project="..\packages\Xamarin.Google.iOS.Analytics.3.17.0.2\build\Xamarin.Google.iOS.Analytics.targets" Condition="Exists('..\packages\Xamarin.Google.iOS.Analytics.3.17.0.2\build\Xamarin.Google.iOS.Analytics.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.props'))" />
+    <Error Condition="!Exists('..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.targets'))" />
+    <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.2\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.2\build\netstandard2.0\NETStandard.Library.targets'))" />
+  </Target>
+  <Import Project="..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.targets" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.9\build\Xamarin.Build.Download.targets')" />
+  <Import Project="..\packages\NETStandard.Library.2.0.2\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.2\build\netstandard2.0\NETStandard.Library.targets')" />
 </Project>

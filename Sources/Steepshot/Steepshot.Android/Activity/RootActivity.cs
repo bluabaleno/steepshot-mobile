@@ -7,7 +7,7 @@ using Android.Support.Design.Widget;
 using Android.Support.V4.Content;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Refractored.Controls;
 using Square.Picasso;
 using Steepshot.Base;
@@ -15,6 +15,7 @@ using Steepshot.Core.Errors;
 using Steepshot.Core.Localization;
 using Steepshot.Core.Models.Enums;
 using Steepshot.Core.Presenters;
+using Steepshot.CustomViews;
 using Steepshot.Fragment;
 using Steepshot.Interfaces;
 using Steepshot.Utils;
@@ -29,8 +30,8 @@ namespace Steepshot.Activity
         private int _tabHeight;
 
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.view_pager)] private CustomViewPager _viewPager;
-        [InjectView(Resource.Id.tab_layout)] public TabLayout _tabLayout;
+        [BindView(Resource.Id.view_pager)] private CustomViewPager _viewPager;
+        [BindView(Resource.Id.tab_layout)] public TabLayout _tabLayout;
 #pragma warning restore 0649
 
 
@@ -38,11 +39,8 @@ namespace Steepshot.Activity
         {
             base.OnCreate(savedInstanceState);
 
-            if (BasePresenter.User.IsAuthenticated && !BasePresenter.User.IsNeedRewards)
-                BasePresenter.User.IsNeedRewards = true; // for android users set true by default
-
             SetContentView(Resource.Layout.lyt_tab_host);
-            Cheeseknife.Inject(this);
+            Cheeseknife.Bind(this);
 
             _tabHeight = (int)BitmapUtils.DpToPixel(30, Resources);
             _adapter = new Adapter.PagerAdapter(SupportFragmentManager);

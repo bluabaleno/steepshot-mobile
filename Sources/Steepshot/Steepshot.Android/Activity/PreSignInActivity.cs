@@ -4,7 +4,7 @@ using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Steepshot.Base;
 using Steepshot.Utils;
 using Steepshot.Core;
@@ -19,14 +19,14 @@ namespace Steepshot.Activity
     public sealed class PreSignInActivity : BaseActivityWithPresenter<PreSignInPresenter>
     {
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.loading_spinner)] private ProgressBar _spinner;
-        [InjectView(Resource.Id.input_username)] private EditText _username;
-        [InjectView(Resource.Id.pre_sign_in_btn)] private Button _preSignInBtn;
-        [InjectView(Resource.Id.profile_login)] private TextView _viewTitle;
-        [InjectView(Resource.Id.btn_switcher)] private ImageButton _switcher;
-        [InjectView(Resource.Id.btn_settings)] private ImageButton _settings;
-        [InjectView(Resource.Id.btn_back)] private ImageButton _backButton;
-        [InjectView(Resource.Id.root_layout)] private RelativeLayout _rootLayout;
+        [BindView(Resource.Id.loading_spinner)] private ProgressBar _spinner;
+        [BindView(Resource.Id.input_username)] private EditText _username;
+        [BindView(Resource.Id.pre_sign_in_btn)] private Button _preSignInBtn;
+        [BindView(Resource.Id.profile_login)] private TextView _viewTitle;
+        [BindView(Resource.Id.btn_switcher)] private ImageButton _switcher;
+        [BindView(Resource.Id.btn_settings)] private ImageButton _settings;
+        [BindView(Resource.Id.btn_back)] private ImageButton _backButton;
+        [BindView(Resource.Id.root_layout)] private RelativeLayout _rootLayout;
 #pragma warning restore 0649
 
 
@@ -34,7 +34,7 @@ namespace Steepshot.Activity
         {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.lyt_pre_sign_in);
-            Cheeseknife.Inject(this);
+            Cheeseknife.Bind(this);
 #if DEBUG
             var di = AppSettings.AssetsesHelper.GetDebugInfo();
             _username.Text = BasePresenter.Chain == KnownChains.Golos

@@ -20,15 +20,7 @@ namespace Steepshot.iOS
     [Register("AppDelegate")]
     public class AppDelegate : UIApplicationDelegate
     {
-        // class-level declarations
-
-        public override UIWindow Window
-        {
-            get;
-            set;
-        }
-
-        public static UIStoryboard Storyboard = UIStoryboard.FromName("Main", null);
+        public override UIWindow Window { get; set; }
         public static UIViewController InitialViewController;
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
@@ -56,13 +48,15 @@ namespace Steepshot.iOS
 
             AppSettings.Container = builder.Build();
 
+            GAService.Instance.InitializeGAService();
+
             AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
             {
-                //AppSettings.Reporter.SendCrash((Error)e.ExceptionObject);
+                AppSettings.Reporter.SendCrash((Exception)e.ExceptionObject);
             };
             TaskScheduler.UnobservedTaskException += (object sender, UnobservedTaskExceptionEventArgs e) =>
             {
-                //AppSettings.Reporter.SendCrash(e.Error);
+                AppSettings.Reporter.SendCrash(e.Exception);
             };
 
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
@@ -71,12 +65,11 @@ namespace Steepshot.iOS
             else
                 InitialViewController = new PreSearchViewController();
 
-            var navController = new InteractivePopNavigationController(InitialViewController);
-            Window.RootViewController = navController;
+            Window.RootViewController = new InteractivePopNavigationController(InitialViewController);
             Window.MakeKeyAndVisible();
             return true;
         }
-
+        /*
         public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
         {
             var tabController = Window.RootViewController as UINavigationController;
@@ -89,7 +82,7 @@ namespace Steepshot.iOS
                     var imageData = nsFileManager.Contents(urlCollection[0]);
                     var sharedPhoto = UIImage.LoadFromData(imageData);
                     //TODO:KOA: Test System.IO.Path.GetExtension(urlCollection[0] expected something like .jpg / .gif etc.
-                    var descriptionViewController = new DescriptionViewController(sharedPhoto, System.IO.Path.GetExtension(urlCollection[0]));
+                    var descriptionViewController = new DescriptionViewController(sharedPhoto, System.IO.Path.GetExtension(urlCollection[0]), UIDeviceOrientation.Portrait);
                     tabController.PushViewController(descriptionViewController, true);
                 }
                 else
@@ -100,18 +93,9 @@ namespace Steepshot.iOS
             }));
             return true;
         }
-
+*/
         public override void OnResignActivation(UIApplication application)
         {
-            /*
-			try
-			{
-				NSNotificationCenter.DefaultCenter.PostNotification(new NSNotification(new NSCoder()));
-			}
-			catch (Exception ex)
-			{
-				
-			} */
             // Invoked when the application is about to move from active to inactive state.
             // This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) 
             // or when the BasePresenter.User quits the application and it begins the transition to the background state.
@@ -126,6 +110,7 @@ namespace Steepshot.iOS
 
         public override void WillEnterForeground(UIApplication application)
         {
+            ((IWillEnterForeground)InitialViewController).WillEnterForeground();
             // Called as part of the transiton from background to active state.
             // Here you can undo many of the changes made on entering the background.
         }

@@ -91,7 +91,10 @@ namespace Steepshot.iOS.Views
         private bool ShouldCharactersChange(UITextField textField, Foundation.NSRange range, string replacementString)
         {
             if (textField.Text.Length + replacementString.Length > 51 || replacementString == " ")
+            {
+                ShowCustomAlert(LocalizationKeys.WrongPrivatePostingKey, textField);
                 return false;
+            }
             return true;
         }
 
@@ -100,8 +103,10 @@ namespace Steepshot.iOS.Views
             var scanner = new ZXing.Mobile.MobileBarcodeScanner();
             var result = await scanner.Scan();
 
-            if (result != null)
+            if (result != null && result.Text.Length == 51)
                 password.Text = result.Text;
+            else
+                ShowCustomAlert(LocalizationKeys.WrongPrivatePostingKey, password);
         }
 
         private bool PasswordShouldReturn(UITextField textField)
@@ -126,10 +131,10 @@ namespace Steepshot.iOS.Views
                 var response = await _presenter.TrySignIn(Username, password.Text);
                 if (response.IsSuccess)
                 {
-                    BasePresenter.User.AddAndSwitchUser(Username, password.Text, BasePresenter.Chain, false);
+                    BasePresenter.User.AddAndSwitchUser(Username, password.Text, BasePresenter.Chain);
 
                     var myViewController = new MainTabBarController();
-
+                    AppDelegate.InitialViewController = myViewController;
                     NavigationController.ViewControllers = new UIViewController[] { myViewController, this };
                     NavigationController.PopViewController(true);
                 }

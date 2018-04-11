@@ -1,9 +1,10 @@
-﻿namespace Steepshot.Core
+﻿
+namespace Steepshot.Core
 {
-    public enum GatewayVersion
+    public class GatewayVersion
     {
-        V1,
-        V1P1
+        public const string V1 = "v1";
+        public const string V1P1 = "v1_1";
     }
 
     public static class Constants
@@ -24,5 +25,8 @@
         public const string Tos = "https://steepshot.org/terms-of-service";
         public const string Guide = "https://alpha.steepshot.io/guide";
         public const string Pp = "https://steepshot.org/privacy-policy";
+
+        public const string VotedInASimilarWaySteem = "You have already voted in a similar way";
+        public const string VotedInASimilarWayGolos = "You have already voted in a similar way";
     }
 }

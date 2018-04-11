@@ -12,7 +12,6 @@ using Steepshot.iOS.Helpers;
 using UIKit;
 using Xamarin.TTTAttributedLabel;
 using PureLayout.Net;
-using System.Diagnostics;
 using CoreGraphics;
 using Steepshot.Core.Utils;
 using Steepshot.Core.Localization;
@@ -130,7 +129,6 @@ namespace Steepshot.iOS.Cells
                 thirdLiker.Hidden = true;
 
             cellText.Text = _currentPost.Author;
-            rewards.Hidden = !BasePresenter.User.IsNeedRewards;
             //rewards.Text = BaseViewController.ToFormatedCurrencyString(_currentPost.TotalPayoutReward);
 
             netVotes.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Like, _currentPost.NetVotes);
@@ -223,8 +221,6 @@ namespace Steepshot.iOS.Cells
                 likeButton.TouchDown += LikeTap;
 
                 _isButtonBinded = true;
-
-                Debug.WriteLine("Cell created");
             }
 
             var noLinkAttribute = new UIStringAttributes
@@ -315,7 +311,8 @@ namespace Steepshot.iOS.Cells
 
         public override void DidSelectLinkWithURL(TTTAttributedLabel label, NSUrl url)
         {
-            _tagAction?.Invoke(url.Description);
+            var t = url.Description.Replace('#', ' ');
+            _tagAction?.Invoke(t);
         }
     }
 }

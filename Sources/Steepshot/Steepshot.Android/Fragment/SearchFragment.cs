@@ -7,7 +7,7 @@ using Android.Support.V7.Widget;
 using Android.Text;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Steepshot.Adapter;
 using Steepshot.Base;
 using Steepshot.Core.Localization;
@@ -38,17 +38,17 @@ namespace Steepshot.Fragment
         private FollowersAdapter _usersSearchAdapter;
 
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.categories)] private RecyclerView _categories;
-        [InjectView(Resource.Id.users)] private RecyclerView _users;
-        [InjectView(Resource.Id.search_view)] private EditText _searchView;
-        [InjectView(Resource.Id.people_loading_spinner)] private ProgressBar _peopleSpinner;
-        [InjectView(Resource.Id.tag_loading_spinner)] private ProgressBar _tagSpinner;
-        [InjectView(Resource.Id.tags_button)] private Button _tagsButton;
-        [InjectView(Resource.Id.people_button)] private Button _peopleButton;
-        [InjectView(Resource.Id.clear_button)] private Button _clearButton;
-        [InjectView(Resource.Id.tags_layout)] private RelativeLayout _tagsLayout;
-        [InjectView(Resource.Id.users_layout)] private RelativeLayout _usersLayout;
-        [InjectView(Resource.Id.empty_query_label)] private TextView _emptyQueryLabel;
+        [BindView(Resource.Id.categories)] private RecyclerView _categories;
+        [BindView(Resource.Id.users)] private RecyclerView _users;
+        [BindView(Resource.Id.search_view)] private EditText _searchView;
+        [BindView(Resource.Id.people_loading_spinner)] private ProgressBar _peopleSpinner;
+        [BindView(Resource.Id.tag_loading_spinner)] private ProgressBar _tagSpinner;
+        [BindView(Resource.Id.tags_button)] private Button _tagsButton;
+        [BindView(Resource.Id.people_button)] private Button _peopleButton;
+        [BindView(Resource.Id.clear_button)] private Button _clearButton;
+        [BindView(Resource.Id.tags_layout)] private RelativeLayout _tagsLayout;
+        [BindView(Resource.Id.users_layout)] private RelativeLayout _usersLayout;
+        [BindView(Resource.Id.empty_query_label)] private TextView _emptyQueryLabel;
 #pragma warning restore 0649
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -56,7 +56,7 @@ namespace Steepshot.Fragment
             if (!IsInitialized)
             {
                 InflatedView = inflater.Inflate(Resource.Layout.lyt_search, null);
-                Cheeseknife.Inject(this, InflatedView);
+                Cheeseknife.Bind(this, InflatedView);
             }
             ToggleTabBar();
             return InflatedView;
@@ -72,7 +72,7 @@ namespace Steepshot.Fragment
             _tagsButton.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Tag);
             _peopleButton.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Users);
             _clearButton.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Clear);
-            _emptyQueryLabel.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.EmptyCategory);
+            _emptyQueryLabel.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.EmptyQuery);
 
             _searchView.TextChanged += OnSearchViewOnTextChanged;
 

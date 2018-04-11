@@ -9,11 +9,10 @@ using Steepshot.Core.Models.Enums;
 using Steepshot.Core.Authority;
 using Steepshot.Core.Errors;
 using Steepshot.Core.Services;
-using Steepshot.Core.Localization;
 
 namespace Steepshot.Core.Presenters
 {
-    public class BasePostPresenter : ListPresenter<Post>
+    public class BasePostPresenter : ListPresenter<Post>, IDisposable
     {
         private const int VoteDelay = 3000;
         public static bool IsEnableVote { get; set; }
@@ -42,6 +41,7 @@ namespace Steepshot.Core.Presenters
                 lock (Items)
                 {
                     Items.Remove(post);
+                    CashPresenterManager.RemoveRef(post);
                 }
             }
             return response.Error;
@@ -141,7 +141,8 @@ namespace Steepshot.Core.Presenters
                             if (!Items.Any(itm => itm.Url.Equals(item.Url, StringComparison.OrdinalIgnoreCase))
                                 && (enableEmptyMedia || IsValidMedia(item)))
                             {
-                                Items.Add(item);
+                                var refItem = CashPresenterManager.Add(item);
+                                Items.Add(refItem);
                                 isAdded = true;
                             }
                         }
@@ -169,7 +170,7 @@ namespace Steepshot.Core.Presenters
         private bool IsValidMedia(Post item)
         {
             //This part of the server logic, but... let`s check that everything is okay
-            if (item.Media.Length == 0)
+            if (item.Media == null || item.Media.Length == 0)
                 return false;
 
             item.Media = item.Media.Where(i => !string.IsNullOrEmpty(i.Url)).ToArray();
@@ -183,10 +184,14 @@ namespace Steepshot.Core.Presenters
                 {
                     itm.Size = new FrameSize(1024, 1024);
                 }
+
+                if (itm.Thumbnails == null)
+                    itm.Thumbnails = new Thumbnails();
+
+                itm.Thumbnails.DefaultUrl = itm.Url;
             }
             return true;
         }
-
 
         public async Task<ErrorBase> TryVote(Post post)
         {
@@ -223,7 +228,7 @@ namespace Steepshot.Core.Presenters
                 post.TotalPayoutReward = response.Result.NewTotalPayoutReward;
             }
             else if (response.Error is BlockchainError
-                && response.Error.Message.Equals(LocalizationKeys.VotedInASimilarWay)) //TODO:KOA: unstable solution
+                     && (response.Error.Message.Contains(Constants.VotedInASimilarWaySteem) || response.Error.Message.Contains(Constants.VotedInASimilarWayGolos))) //TODO:KOA: unstable solution
             {
                 response.Error = null;
                 ChangeLike(post, wasFlaged);
@@ -276,7 +281,7 @@ namespace Steepshot.Core.Presenters
                     await Task.Delay(VoteDelay - td.Milliseconds, ct);
             }
             else if (response.Error is BlockchainError
-                     && response.Error.Message.Equals(LocalizationKeys.VotedInASimilarWay)) //TODO:KOA: unstable solution
+                && (response.Error.Message.Contains(Constants.VotedInASimilarWaySteem) || response.Error.Message.Contains(Constants.VotedInASimilarWayGolos))) //TODO:KOA: unstable solution
             {
                 response.Error = null;
                 ChangeFlag(post, wasVote);
@@ -292,5 +297,53 @@ namespace Steepshot.Core.Presenters
             if (wasVote)
                 post.NetLikes--;
         }
+
+        public override void Clear(bool isNotify = true)
+        {
+            lock (Items)
+            {
+                CashPresenterManager.RemoveAll(Items);
+            }
+
+            base.Clear(isNotify);
+        }
+
+        #region IDisposable Support
+        private bool _disposedValue = false; // To detect redundant calls
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    lock (Items)
+                    {
+                        CashPresenterManager.RemoveAll(Items);
+                    }
+                }
+
+                // free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // set large fields to null.
+
+                _disposedValue = true;
+            }
+        }
+
+        // override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~BasePostPresenter() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

@@ -7,7 +7,7 @@ using Android.Support.V4.Widget;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Steepshot.Activity;
 using Steepshot.Adapter;
 using Steepshot.Base;
@@ -32,13 +32,17 @@ namespace Steepshot.Fragment
         private ScrollListener _scrollListner;
 
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.feed_list)] private RecyclerView _feedList;
-        [InjectView(Resource.Id.loading_spinner)] private ProgressBar _bar;
-        [InjectView(Resource.Id.feed_refresher)] private SwipeRefreshLayout _refresher;
-        [InjectView(Resource.Id.logo)] private ImageView _logo;
-        [InjectView(Resource.Id.app_bar)] private AppBarLayout _toolbar;
-        [InjectView(Resource.Id.empty_query_label)] private TextView _emptyQueryLabel;
-        [InjectView(Resource.Id.post_prev_pager)] private ViewPager _postPager;
+        [BindView(Resource.Id.feed_list)] private RecyclerView _feedList;
+        [BindView(Resource.Id.loading_spinner)] private ProgressBar _bar;
+        [BindView(Resource.Id.feed_refresher)] private SwipeRefreshLayout _refresher;
+        [BindView(Resource.Id.logo)] private ImageView _logo;
+        [BindView(Resource.Id.app_bar)] private AppBarLayout _toolbar;
+        [BindView(Resource.Id.empty_query_label)] private TextView _emptyQueryLabel;
+        [BindView(Resource.Id.post_prev_pager)] private ViewPager _postPager;
+        [BindView(Resource.Id.feed_container)] private RelativeLayout _feedContainer;
+        [BindView(Resource.Id.browse_button)] private Button _browseButton;
+        [BindView(Resource.Id.main_message)] private TextView _mainMessage;
+        [BindView(Resource.Id.hint_message)] private TextView _hintMessage;
 #pragma warning restore 0649
 
 
@@ -47,7 +51,7 @@ namespace Steepshot.Fragment
             if (!IsInitialized)
             {
                 InflatedView = inflater.Inflate(Resource.Layout.lyt_feed, null);
-                Cheeseknife.Inject(this, InflatedView);
+                Cheeseknife.Bind(this, InflatedView);
             }
             ToggleTabBar();
             return InflatedView;
@@ -70,6 +74,7 @@ namespace Steepshot.Fragment
                 _postPagerAdapter.CloseAction += CloseAction;
 
                 _logo.Click += OnLogoClick;
+                _browseButton.Click += GoToBrowseButtonClick;
                 _toolbar.OffsetChanged += OnToolbarOffsetChanged;
 
                 _scrollListner = new ScrollListener();
@@ -93,6 +98,10 @@ namespace Steepshot.Fragment
                 _emptyQueryLabel.Typeface = Style.Light;
                 _emptyQueryLabel.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.EmptyCategory);
 
+                _mainMessage.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.Greeting);
+                _hintMessage.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.EmptyFeedHint);
+                _browseButton.Text = AppSettings.LocalizationManager.GetText(LocalizationKeys.GoToBrowse);
+
                 LoadPosts();
             }
 
@@ -111,6 +120,7 @@ namespace Steepshot.Fragment
         public override void OnResume()
         {
             base.OnResume();
+            _adapter.NotifyDataSetChanged();
             if (_postPager.Visibility == ViewStates.Visible)
                 if (Activity is RootActivity activity)
                     activity._tabLayout.Visibility = ViewStates.Invisible;
@@ -189,7 +199,17 @@ namespace Steepshot.Fragment
             _bar.Visibility = ViewStates.Gone;
             _refresher.Refreshing = false;
 
-            _emptyQueryLabel.Visibility = Presenter.Count > 0 ? ViewStates.Invisible : ViewStates.Visible;
+            _feedContainer.Visibility = ViewStates.Invisible;
+
+            if (Presenter.Count == 0)
+            {
+                _feedContainer.Visibility = ViewStates.Visible;
+            }
+        }
+
+        private void GoToBrowseButtonClick(object sender, EventArgs e)
+        {
+            ((RootActivity)Activity).SelectTab(1);
         }
 
         private void PhotoClick(Post post)

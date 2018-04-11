@@ -1,55 +1,156 @@
 ﻿using System;
+using CoreGraphics;
 using FFImageLoading;
 using FFImageLoading.Work;
-using Foundation;
 using Photos;
+using PureLayout.Net;
 using Steepshot.Core.Models.Common;
 using Steepshot.iOS.Helpers;
 using UIKit;
 
 namespace Steepshot.iOS.Cells
 {
-    public partial class PhotoCollectionViewCell : BaseProfileCell
+    public partial class PhotoCollectionViewCell : UICollectionViewCell
     {
-        protected PhotoCollectionViewCell(IntPtr handle) : base(handle) { }
-        public static readonly NSString Key = new NSString(nameof(PhotoCollectionViewCell));
-        public static readonly UINib Nib;
-        public PHAsset Asset;
-        public UIImage Image => photoImg.Image;
-        public string ImageUrl;
+        private string ImageUrl;
         private IScheduledWork _scheduledWork;
-        private readonly int _downSampleWidth = (int)Constants.CellSize.Width;
+        private Post _currentPost;
+        private UIImageView _bodyImage;
+        private UIImageView _galleryImage;
+        private UIView _selectFrame;
+        private UIView _selectView;
+        private UILabel _countLabel;
 
-        bool isInitialized;
-
-        static PhotoCollectionViewCell()
+        public bool IsSelected
         {
-            Nib = UINib.FromName(nameof(PhotoCollectionViewCell), NSBundle.MainBundle);
+            get;
+            set;
         }
 
-        public void UpdateImage(UIImage photo, PHAsset asset)
+        protected PhotoCollectionViewCell(IntPtr handle) : base(handle)
         {
-            photoImg.Image = photo;
-            Asset = asset;
+            _galleryImage = new UIImageView(new CGRect(Constants.CellSideSize - 15, 5, 10, 10));
+            _galleryImage.Image = UIImage.FromBundle("ic_is_gallery");
+            ContentView.AddSubview(_galleryImage);
         }
 
-        public override void UpdateCell(Post post)
+        public void UpdateImage(PHImageManager cm, PHAsset photo, bool isCurrentlySelected, int count = 0, bool? isSelected = null)
         {
-            if (!isInitialized)
+            if (_bodyImage == null)
+                CreateImageView();
+
+            if (_selectView == null)
             {
-                widthConstraint.Constant = heightConstraint.Constant = Constants.CellSideSize;
-                isInitialized = true;
+                _selectView = new UIView(new CGRect(ContentView.Frame.Right - 38, 8, 30, 30));
+                _selectView.Layer.BorderColor = UIColor.White.CGColor;
+                _selectView.Layer.BorderWidth = 2;
+                _selectView.Layer.CornerRadius = 15;
+                _selectView.BackgroundColor = UIColor.Clear;
+                _selectView.Hidden = true;
+                _selectView.ClipsToBounds = true;
+                ContentView.AddSubview(_selectView);
             }
 
-            ImageUrl = post.Media[0].Url;
-            photoImg.Image = null;
+            if (_countLabel == null)
+            {
+                _countLabel = new UILabel();
+                _countLabel.Font = Constants.Semibold16;
+                _countLabel.TextColor = UIColor.White;
+                _selectView.AddSubview(_countLabel);
+                _countLabel.AutoCenterInSuperview();
+
+            }
+            _countLabel.Text = (count + 1).ToString();
+
+
+            if (_selectFrame == null)
+            {
+                _selectFrame = new UIView(ContentView.Frame);
+                _selectFrame.Layer.BorderColor = Constants.R255G81B4.CGColor;
+                _selectFrame.Layer.BorderWidth = 3;
+                _selectFrame.BackgroundColor = UIColor.Clear;
+
+                ContentView.AddSubview(_selectFrame);
+            }
+            _selectFrame.Hidden = !isCurrentlySelected;
+
+            ManageSelector(isSelected);
+
+            cm.RequestImageForAsset(photo, new CGSize(200, 200),
+                                                 PHImageContentMode.AspectFill, new PHImageRequestOptions() { Synchronous = true }, (img, info) =>
+                                       {
+                                           _bodyImage.Image = img;
+                                       });
+        }
+
+        private void ManageSelector(bool? isSelected)
+        {
+            switch (isSelected)
+            {
+                case true:
+                    _selectView.Hidden = false;
+                    _selectView.Layer.BorderColor = Constants.R255G81B4.CGColor;
+                    _selectView.BackgroundColor = Constants.R255G81B4;
+                    _countLabel.TextColor = UIColor.White;
+                    break;
+                case false:
+                    _selectView.Hidden = false;
+                    _selectView.Layer.BorderColor = UIColor.White.CGColor;
+                    _selectView.BackgroundColor = UIColor.Clear;
+                    _countLabel.TextColor = UIColor.Clear;
+                    break;
+                case null:
+                    _selectView.Hidden = true;
+                    break;
+            }
+        }
+
+        public void ToggleCell(bool isCurrentSelection)
+        {
+            _selectFrame.Hidden = !isCurrentSelection;
+        }
+
+        public void UpdateCell(Post post)
+        {
+            _currentPost = post;
+
+            ImageUrl = post.Media[0].Thumbnails.Micro;
+
+            _bodyImage?.RemoveFromSuperview();
+            CreateImageView();
+
             _scheduledWork?.Cancel();
-            if (ImageUrl != null)
-                _scheduledWork = ImageService.Instance.LoadUrl(ImageUrl, Constants.ImageCacheDuration)
-                                             .Retry(5)
-                                             .FadeAnimation(false)
-                                             .DownSample(width: _downSampleWidth)
-                                             .Into(photoImg);
+            _scheduledWork = ImageService.Instance.LoadUrl(ImageUrl)
+                                         .Retry(2)
+                                         .FadeAnimation(false)
+                                         .WithCache(FFImageLoading.Cache.CacheType.All)
+                                         .WithPriority(LoadingPriority.Highest)
+                                         .DownSample(250)
+                                          /* .DownloadProgress((f)=>
+                                         {
+                                         })*/
+                                          .Into(_bodyImage);
+            if (post.Media.Length > 1)
+                ContentView.BringSubviewToFront(_galleryImage);
+        }
+
+        public void UpdateCell(UIImage image)
+        {
+            _bodyImage?.RemoveFromSuperview();
+            CreateImageView();
+            _bodyImage.Image = image;
+        }
+
+        private void CreateImageView()
+        {
+            _bodyImage = new UIImageView();
+            _bodyImage.ClipsToBounds = true;
+            _bodyImage.UserInteractionEnabled = true;
+            _bodyImage.ContentMode = UIViewContentMode.ScaleAspectFill;
+            _bodyImage.Frame = new CGRect(new CGPoint(0, 0), Constants.CellSize);
+            _bodyImage.BackgroundColor = UIColor.FromRGB(244, 244, 246);
+
+            ContentView.AddSubview(_bodyImage);
         }
     }
 }

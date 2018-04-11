@@ -12,6 +12,8 @@ using Steepshot.iOS.ViewSources;
 using UIKit;
 using Steepshot.Core.Utils;
 using Steepshot.Core.Localization;
+using CoreGraphics;
+using Steepshot.Core.Errors;
 
 namespace Steepshot.iOS.Views
 {
@@ -22,6 +24,7 @@ namespace Steepshot.iOS.Views
         private UINavigationController _navController;
         private UIRefreshControl _refreshControl;
         private bool _isFeedRefreshing;
+        private SliderCollectionViewFlowDelegate _sliderGridDelegate;
 
         protected override void CreatePresenter()
         {
@@ -31,8 +34,23 @@ namespace Steepshot.iOS.Views
 
         private void SourceChanged(Status status)
         {
-            _gridDelegate.GenerateVariables();
-            feedCollection.ReloadData();
+            if (!feedCollection.Hidden)
+            {
+                _gridDelegate.GenerateVariables();
+                feedCollection.ReloadData();
+            }
+            else
+            {
+                _sliderGridDelegate.GenerateVariables();
+                sliderCollection.ReloadData();
+            }
+        }
+
+        public override void ViewWillAppear(bool animated)
+        {
+            if (!IsMovingToParentViewController)
+                feedCollection.ReloadData();
+            base.ViewWillAppear(animated);
         }
 
         public override void ViewDidLoad()
@@ -60,6 +78,30 @@ namespace Steepshot.iOS.Views
             feedCollection.Add(_refreshControl);
             feedCollection.Delegate = _gridDelegate;
 
+            _sliderGridDelegate = new SliderCollectionViewFlowDelegate(sliderCollection, _presenter);
+            _sliderGridDelegate.ScrolledToBottom += ScrolledToBottom;
+
+            var _sliderCollectionViewSource = new SliderCollectionViewSource(_presenter, _sliderGridDelegate);
+
+            sliderCollection.DecelerationRate = UIScrollView.DecelerationRateFast;
+            sliderCollection.ShowsHorizontalScrollIndicator = false;
+
+            sliderCollection.SetCollectionViewLayout(new SliderFlowLayout()
+            {
+                MinimumLineSpacing = 10,
+                MinimumInteritemSpacing = 0,
+                ScrollDirection = UICollectionViewScrollDirection.Horizontal,
+                SectionInset = new UIEdgeInsets(0, 15, 0, 15),
+            }, false);
+
+            sliderCollection.Source = _sliderCollectionViewSource;
+            sliderCollection.RegisterClassForCell(typeof(LoaderCollectionCell), nameof(LoaderCollectionCell));
+            sliderCollection.RegisterClassForCell(typeof(SliderFeedCollectionViewCell), nameof(SliderFeedCollectionViewCell));
+
+            _sliderCollectionViewSource.CellAction += CellAction;
+            _sliderCollectionViewSource.TagAction += TagAction;
+            sliderCollection.Delegate = _sliderGridDelegate;
+
             if (TabBarController != null)
             {
                 TabBarController.NavigationController.NavigationBar.TintColor = Helpers.Constants.R15G24B30;
@@ -67,8 +109,15 @@ namespace Steepshot.iOS.Views
                 TabBarController.NavigationController.SetNavigationBarHidden(true, false);
             }
 
+            ((MainTabBarController)TabBarController).SameTabTapped += SameTabTapped;
+
             SetNavBar();
             GetPosts();
+        }
+
+        private void SameTabTapped()
+        {
+            feedCollection.SetContentOffset(new CGPoint(0, 0), true);
         }
 
         private async void OnRefresh(object sender, EventArgs e)
@@ -92,11 +141,17 @@ namespace Steepshot.iOS.Views
                     NavigationController.PushViewController(myViewController, true);
                     break;
                 case ActionType.Preview:
-                    var myViewController2 = new ImagePreviewViewController();
-                    //TODO: pass image
-                    myViewController2.ImageForPreview = null;
-                    myViewController2.ImageUrl = post.Body;
-                    TabBarController.NavigationController.PushViewController(myViewController2, true);
+                    if (feedCollection.Hidden)
+                        //NavigationController.PushViewController(new PostViewController(post, _gridDelegate.Variables[_presenter.IndexOf(post)], _presenter), false);
+                        NavigationController.PushViewController(new ImagePreviewViewController(post.Body) { HidesBottomBarWhenPushed = true }, true);
+                    else
+                    {
+                        feedCollection.Hidden = true;
+                        sliderCollection.Hidden = false;
+                        _sliderGridDelegate.GenerateVariables();
+                        sliderCollection.ReloadData();
+                        sliderCollection.ScrollToItem(NSIndexPath.FromRowSection(_presenter.IndexOf(post), 0), UICollectionViewScrollPosition.CenteredHorizontally, false);
+                    }
                     break;
                 case ActionType.Voters:
                     NavigationController.PushViewController(new VotersViewController(post, VotersType.Likes), true);
@@ -116,6 +171,13 @@ namespace Steepshot.iOS.Views
                 case ActionType.More:
                     Flag(post);
                     break;
+                case ActionType.Close:
+                    feedCollection.Hidden = false;
+                    sliderCollection.Hidden = true;
+                    _gridDelegate.GenerateVariables();
+                    feedCollection.ReloadData();
+                    feedCollection.ScrollToItem(NSIndexPath.FromRowSection(_presenter.IndexOf(post), 0), UICollectionViewScrollPosition.Top, false);
+                    break;
                 default:
                     break;
             }
@@ -130,25 +192,29 @@ namespace Steepshot.iOS.Views
 
         private async Task GetPosts(bool shouldStartAnimating = true, bool clearOld = false)
         {
-            if (shouldStartAnimating)
-                activityIndicator.StartAnimating();
-            noFeedLabel.Hidden = true;
-
-            if (clearOld)
+            ErrorBase error;
+            do
             {
-                _presenter.Clear();
-                _gridDelegate.ClearPosition();
-            }
-            var error = await _presenter.TryLoadNextTopPosts();
+                if (shouldStartAnimating)
+                    activityIndicator.StartAnimating();
+                noFeedLabel.Hidden = true;
+
+                if (clearOld)
+                {
+                    _presenter.Clear();
+                    _gridDelegate.ClearPosition();
+                }
+                error = await _presenter.TryLoadNextTopPosts();
+
+                if (_refreshControl.Refreshing)
+                {
+                    _refreshControl.EndRefreshing();
+                    _isFeedRefreshing = false;
+                }
+                else
+                    activityIndicator.StopAnimating();
+            } while (error is RequestError);
             ShowAlert(error);
-
-            if (_refreshControl.Refreshing)
-            {
-                _refreshControl.EndRefreshing();
-                _isFeedRefreshing = false;
-            }
-            else
-                activityIndicator.StopAnimating();
         }
 
         private async void ScrolledToBottom()
@@ -160,6 +226,8 @@ namespace Steepshot.iOS.Views
         {
             var error = await _presenter.TryVote(post);
             ShowAlert(error);
+            if (error == null)
+                ((MainTabBarController)TabBarController)?.UpdateProfile();
         }
 
         private void Flag(Post post)
@@ -167,6 +235,8 @@ namespace Steepshot.iOS.Views
             UIAlertController actionSheetAlert = UIAlertController.Create(null, null, UIAlertControllerStyle.ActionSheet);
             actionSheetAlert.AddAction(UIAlertAction.Create(AppSettings.LocalizationManager.GetText(LocalizationKeys.FlagPhoto), UIAlertActionStyle.Default, obj => FlagPhoto(post)));
             actionSheetAlert.AddAction(UIAlertAction.Create(AppSettings.LocalizationManager.GetText(LocalizationKeys.HidePhoto), UIAlertActionStyle.Default, obj => HidePhoto(post)));
+            actionSheetAlert.AddAction(UIAlertAction.Create(AppSettings.LocalizationManager.GetText(LocalizationKeys.Sharepost), UIAlertActionStyle.Default, obj => SharePhoto(post)));
+            actionSheetAlert.AddAction(UIAlertAction.Create(AppSettings.LocalizationManager.GetText(LocalizationKeys.CopyLink), UIAlertActionStyle.Default, obj => CopyLink(post)));
             actionSheetAlert.AddAction(UIAlertAction.Create(AppSettings.LocalizationManager.GetText(LocalizationKeys.Cancel), UIAlertActionStyle.Cancel, null));
             PresentViewController(actionSheetAlert, true, null);
         }
@@ -186,6 +256,24 @@ namespace Steepshot.iOS.Views
 
             var error = await _presenter.TryFlag(post);
             ShowAlert(error);
+            if (error == null)
+                ((MainTabBarController)TabBarController)?.UpdateProfile();
+        }
+
+        private void CopyLink(Post post)
+        {
+            UIPasteboard.General.String = AppSettings.LocalizationManager.GetText(LocalizationKeys.PostLink, post.Url);
+            ShowAlert(LocalizationKeys.Copied);
+        }
+
+        private void SharePhoto(Post post)
+        {
+            var postLink = AppSettings.LocalizationManager.GetText(LocalizationKeys.PostLink, post.Url);
+            var item = NSObject.FromObject(postLink);
+            var activityItems = new NSObject[] { item };
+
+            var activityController = new UIActivityViewController(activityItems, null);
+            PresentViewController(activityController, true, null);
         }
 
         private void SetNavBar()

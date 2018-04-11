@@ -17,11 +17,13 @@ using Steepshot.Services;
 using Steepshot.Utils;
 using LruCache = Square.Picasso.LruCache;
 using Steepshot.Core.Localization;
+using Uri = Android.Net.Uri;
 
 namespace Steepshot.Base
 {
     public abstract class BaseActivity : AppCompatActivity
     {
+        public const string AppLinkingExtra = "appLinkingExtra";
         protected HostFragment CurrentHostFragment;
         protected static LruCache Cache;
 

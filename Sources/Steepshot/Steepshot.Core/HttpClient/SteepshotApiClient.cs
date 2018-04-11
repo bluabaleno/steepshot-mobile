@@ -48,7 +48,7 @@ namespace Steepshot.Core.HttpClient
 
             lock (_synk)
             {
-                if (!string.IsNullOrEmpty(Gateway.Url))
+                if (!string.IsNullOrEmpty(Gateway.BaseUrl))
                 {
                     _ditchClient.EnableWrite = false;
                     _ctsMain.Cancel();
@@ -60,7 +60,7 @@ namespace Steepshot.Core.HttpClient
                     ? (BaseDitchClient)new SteemClient(JsonConverter)
                     : new GolosClient(JsonConverter);
 
-                Gateway.Url = sUrl;
+                Gateway.BaseUrl = sUrl;
                 EnableRead = true;
             }
         }
@@ -111,21 +111,22 @@ namespace Steepshot.Core.HttpClient
 
             if (!model.IsEditMode)
             {
-                var bKey = $"{_ditchClient.GetType()}{model.IsNeedRewards}";
+                var bKey = $"{_ditchClient.GetType()}";
                 if (_beneficiariesCash.ContainsKey(bKey))
                 {
                     model.Beneficiaries = _beneficiariesCash[bKey];
                 }
                 else
                 {
-                    var beneficiaries = await GetBeneficiaries(model.IsNeedRewards, ct);
+                    var beneficiaries = await GetBeneficiaries(ct);
                     if (beneficiaries.IsSuccess)
                         _beneficiariesCash[bKey] = model.Beneficiaries = beneficiaries.Result.Beneficiaries;
                 }
             }
 
             var result = await _ditchClient.CreateOrEdit(model, ct);
-            Trace($"post/@{model.Author}/{model.Permlink}/comment", model.Login, result.Error, $"@{model.Author}/{model.Permlink}", ct);//.Wait(5000);
+            //log parent post to perform update
+            Trace($"post/@{model.ParentAuthor}/{model.ParentPermlink}/comment", model.Login, result.Error, $"@{model.ParentAuthor}/{model.ParentPermlink}", ct);//.Wait(5000);
             return result;
         }
 
@@ -137,10 +138,8 @@ namespace Steepshot.Core.HttpClient
                 return new OperationResult<VoidResponse>(operationResult.Error);
 
             var preparedData = operationResult.Result;
-
-            var category = model.Tags.Length > 0 ? model.Tags[0] : "steepshot";
             var meta = JsonConverter.Serialize(preparedData.JsonMetadata);
-            var commentModel = new CommentModel(model.Login, model.PostingKey, string.Empty, category, model.Login, model.Permlink, model.Title, preparedData.Body, meta);
+            var commentModel = new CommentModel(model, preparedData.Body, meta);
             if (!model.IsEditMode)
                 commentModel.Beneficiaries = preparedData.Beneficiaries;
 
@@ -170,9 +169,10 @@ namespace Steepshot.Core.HttpClient
             if (!trxResp.IsSuccess)
                 return new OperationResult<MediaModel>(trxResp.Error);
 
-            model.VerifyTransaction = trxResp.Result;
+            model.VerifyTransaction = JsonConverter.Serialize(trxResp.Result);
 
-            return await Gateway.UploadMedia(GatewayVersion.V1P1, "media/upload", model, ct);
+            var endpoint = $"{GatewayVersion.V1P1}/media/upload";
+            return await Gateway.UploadMedia(endpoint, model, ct);
         }
 
         public async Task<OperationResult<VoidResponse>> DeletePostOrComment(DeleteModel model, CancellationToken ct)
@@ -205,6 +205,24 @@ namespace Steepshot.Core.HttpClient
                 return new OperationResult<VoidResponse>(new ValidationError(results));
 
             return await _ditchClient.UpdateUserProfile(model, ct);
+        }
+
+        public async Task<OperationResult<object>> SubscribeForPushes(PushNotificationsModel model, CancellationToken ct)
+        {
+            var trxResp = await _ditchClient.GetVerifyTransaction(model, ct);
+
+            if (!trxResp.IsSuccess)
+                return new OperationResult<object>(trxResp.Error);
+
+            model.VerifyTransaction = trxResp.Result;
+
+            var results = Validate(model);
+            if (results.Any())
+                return new OperationResult<object>(new ValidationError(results));
+
+            var endpoint = $"{GatewayVersion.V1P1}/{(model.Subscribe ? "subscribe" : "unsubscribe")}";
+
+            return await Gateway.Post<object, PushNotificationsModel>(endpoint, model, ct);
         }
     }
 }

@@ -69,6 +69,10 @@ namespace Steepshot.iOS.Views
             lowRatedSwitch.ValueChanged += SwitchLowRated;
             nsfwSwitch.ValueChanged += SwitchNSFW;
             SetBackButton();
+
+#if !DEBUG
+            lowRatedLabel.Hidden = nsfwLabel.Hidden = nsfwSwitch.Hidden = lowRatedSwitch.Hidden = true;
+#endif
         }
 
         private void SendReport(object sender, EventArgs e)
@@ -201,6 +205,7 @@ namespace Steepshot.iOS.Views
             if (_tableSource.Accounts.Count == 0)
             {
                 var myViewController = new PreSearchViewController();
+                AppDelegate.InitialViewController = myViewController;
                 NavigationController.ViewControllers = new UIViewController[] { myViewController, this };
                 //_isTabBarNeedResfresh = true;
                 NavigationController.PopViewController(false);

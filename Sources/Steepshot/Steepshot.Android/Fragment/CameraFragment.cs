@@ -5,7 +5,7 @@
 //using Android.Support.V4.Content;
 //using Android.Views;
 //using Android.Widget;
-//using Com.Lilarcor.Cheeseknife;
+//using CheeseBind;
 //using Steepshot.Activity;
 //using Steepshot.Base;
 //using Steepshot.Utils;
@@ -23,7 +23,7 @@
 //        public const string CameraPermission = Android.Manifest.Permission.Camera;
 //        public const string WritePermission = Android.Manifest.Permission.WriteExternalStorage;
 
-//        [InjectView(Resource.Id.camera_frame)]
+//        [BindView(Resource.Id.camera_frame)]
 //        FrameLayout _cameraContainer;
 
 //        [InjectOnClick(Resource.Id.take_photo)]
@@ -35,7 +35,7 @@
 //        public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 //        {
 //            var v = inflater.Inflate(Resource.Layout.lyt_fragment_take_photo, null);
-//            Cheeseknife.Inject(this, v);
+//            Cheeseknife.Bind(this, v);
 //            return v;
 //        }
 

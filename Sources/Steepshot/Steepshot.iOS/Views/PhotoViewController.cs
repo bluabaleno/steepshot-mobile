@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using AVFoundation;
@@ -6,20 +7,21 @@ using CoreGraphics;
 using CoreMedia;
 using Foundation;
 using Photos;
+using Steepshot.Core.Utils;
+using Steepshot.iOS.ViewControllers;
 using UIKit;
 
 namespace Steepshot.iOS.Views
 {
-    public partial class PhotoViewController : UIViewController, IAVCapturePhotoCaptureDelegate
+    public partial class PhotoViewController : BaseViewController, IAVCapturePhotoCaptureDelegate
     {
         private AVCaptureSession _captureSession;
         private AVCaptureDeviceInput _captureDeviceInput;
-        private UIImagePickerController _imagePicker;
         private AVCapturePhotoOutput _capturePhotoOutput;
         private AVCaptureVideoPreviewLayer _videoPreviewLayer;
-        private bool _isCameraAccessDenied;
-        //private UIDeviceOrientation _photoOrientation;
-
+        private UIDeviceOrientation currentOrientation;
+        private UIDeviceOrientation orientationOnPhoto;
+        private NSObject _orientationChangeEventToken;
 
         public override void ViewDidLoad()
         {
@@ -30,20 +32,26 @@ namespace Steepshot.iOS.Views
             photoButton.TouchDown += CapturePhoto;
             closeButton.TouchDown += GoBack;
             swapCameraButton.TouchDown += SwitchCameraButtonTapped;
+            enableCameraAccess.TouchDown += EnableCameraAccess;
 
-            var galleryTap = new UITapGestureRecognizer(() =>
-            {
-                NavigationController.PresentModalViewController(_imagePicker, true);
-            });
-
+            var galleryTap = new UITapGestureRecognizer(GalleryTap);
             galleryButton.AddGestureRecognizer(galleryTap);
+        }
 
-            _imagePicker = new UIImagePickerController();
-            _imagePicker.SourceType = UIImagePickerControllerSourceType.PhotoLibrary;
-            //_imagePicker.MediaTypes = UIImagePickerController.AvailableMediaTypes(UIImagePickerControllerSourceType.PhotoLibrary);
+        private void EnableCameraAccess(object sender, EventArgs e)
+        {
+            UIApplication.SharedApplication.OpenUrl(new NSUrl(UIApplication.OpenSettingsUrlString), new NSDictionary(), null);
+        }
 
-            _imagePicker.FinishedPickingMedia += FinishedPickingMedia;
-            //imagePicker.Canceled += Handle_Canceled;
+        private void GalleryTap()
+        {
+            if (PHPhotoLibrary.AuthorizationStatus == PHAuthorizationStatus.Authorized)
+            {
+                var descriptionViewController = new PhotoPreviewViewController();
+                NavigationController.PushViewController(descriptionViewController, true);
+            }
+            else
+                UIApplication.SharedApplication.OpenUrl(new NSUrl(UIApplication.OpenSettingsUrlString), new NSDictionary(), null);
         }
 
         public override bool PrefersStatusBarHidden()
@@ -54,15 +62,55 @@ namespace Steepshot.iOS.Views
         public override void ViewWillAppear(bool animated)
         {
             NavigationController.SetNavigationBarHidden(true, false);
+            CheckDeviceOrientation(null);
             SetGalleryButton();
+            ToogleButtons(true);
+        }
+
+        private void ToogleButtons(bool isEnabled)
+        {
+            photoButton.Enabled = isEnabled;
+            closeButton.Enabled = isEnabled;
+            swapCameraButton.Enabled = isEnabled;
         }
 
         public override void ViewDidAppear(bool animated)
         {
+            _orientationChangeEventToken = NSNotificationCenter.DefaultCenter.AddObserver(UIDevice.OrientationDidChangeNotification, CheckDeviceOrientation);
             if (_captureSession == null)
                 AuthorizeCameraUse();
             else if (!_captureSession.Running)
                 _captureSession.StartRunning();
+        }
+
+        public override void ViewDidDisappear(bool animated)
+        {
+            if (_orientationChangeEventToken != null)
+            {
+                NSNotificationCenter.DefaultCenter.RemoveObserver(_orientationChangeEventToken);
+                _orientationChangeEventToken.Dispose();
+            }
+        }
+
+        private void CheckDeviceOrientation(NSNotification notification)
+        {
+            if (_captureDeviceInput?.Device?.Position == AVCaptureDevicePosition.Front)
+            {
+                switch (UIDevice.CurrentDevice.Orientation)
+                {
+                    case UIDeviceOrientation.LandscapeLeft:
+                        currentOrientation = UIDeviceOrientation.LandscapeRight;
+                        break;
+                    case UIDeviceOrientation.LandscapeRight:
+                        currentOrientation = UIDeviceOrientation.LandscapeLeft;
+                        break;
+                    default:
+                        currentOrientation = UIDevice.CurrentDevice.Orientation;
+                        break;
+                }
+            }
+            else
+                currentOrientation = UIDevice.CurrentDevice.Orientation;
         }
 
         private async void SetGalleryButton()
@@ -80,23 +128,23 @@ namespace Steepshot.iOS.Views
                 var lastGalleryPhoto = fetchedAssets.FirstOrDefault() as PHAsset;
                 if (lastGalleryPhoto != null)
                 {
+                    galleryButton.UserInteractionEnabled = true;
                     var PHImageManager = new PHImageManager();
                     PHImageManager.RequestImageForAsset(lastGalleryPhoto, new CGSize(300, 300),
-                                            PHImageContentMode.AspectFill, new PHImageRequestOptions(), (img, info) =>
-                                            {
-                                                galleryButton.Image = img;
-                                            });
+                                                        PHImageContentMode.AspectFill, new PHImageRequestOptions()
+                                                        {
+                                                            DeliveryMode = PHImageRequestOptionsDeliveryMode.Opportunistic,
+                                                            ResizeMode = PHImageRequestOptionsResizeMode.Exact
+                                                        }, (img, info) =>
+                          {
+                              galleryButton.Image = img;
+                          });
                 }
                 else
-                    galleryButton.Image = UIImage.FromBundle("ic_noavatar");
+                    galleryButton.UserInteractionEnabled = false;
             }
-        }
-
-        private void FinishedPickingMedia(object sender, UIImagePickerMediaPickedEventArgs e)
-        {
-            var originalImage = e.Info[UIImagePickerController.OriginalImage] as UIImage;
-            GoToDescription(originalImage);
-            _imagePicker.DismissViewControllerAsync(false);
+            else
+                galleryButton.UserInteractionEnabled = true;
         }
 
         private void GoBack(object sender, EventArgs e)
@@ -106,6 +154,7 @@ namespace Steepshot.iOS.Views
 
         private void CapturePhoto(object sender, EventArgs e)
         {
+            ToogleButtons(false);
             var settingKeys = new object[]
             {
                     AVVideo.CodecKey,
@@ -115,53 +164,34 @@ namespace Steepshot.iOS.Views
             var settingObjects = new object[]
             {
                     new NSString("jpeg"),
-                    new NSDictionary(AVVideo.QualityKey, 0.5),
+                    new NSDictionary(AVVideo.QualityKey, 1),
             };
 
             var settingsDictionary = NSDictionary<NSString, NSObject>.FromObjectsAndKeys(settingObjects, settingKeys);
 
             var settings = AVCapturePhotoSettings.FromFormat(settingsDictionary);
-            settings.FlashMode = AVCaptureFlashMode.Auto;
 
-            //_photoOrientation = UIDevice.CurrentDevice.Orientation;
+            if (_capturePhotoOutput.SupportedFlashModes.Length > 0 && _captureDeviceInput.Device.Position == AVCaptureDevicePosition.Back)
+                settings.FlashMode = AVCaptureFlashMode.Auto;
+
+            orientationOnPhoto = currentOrientation;
             _capturePhotoOutput.CapturePhoto(settings, this);
         }
 
         [Export("captureOutput:didFinishProcessingPhotoSampleBuffer:previewPhotoSampleBuffer:resolvedSettings:bracketSettings:error:")]
         public void DidFinishProcessingPhoto(AVCapturePhotoOutput captureOutput, CMSampleBuffer photoSampleBuffer, CMSampleBuffer previewPhotoSampleBuffer, AVCaptureResolvedPhotoSettings resolvedSettings, AVCaptureBracketedStillImageSettings bracketSettings, NSError error)
-        {/*
+        {
             try
             {
-                using (var pixelBuffer = photoSampleBuffer.GetImageBuffer() as CVPixelBuffer)
-                {
-                    pixelBuffer.Lock(CVPixelBufferLock.None);
-                    var j = CIImage.FromImageBuffer(pixelBuffer);
-                    pixelBuffer.Unlock(CVPixelBufferLock.None);
-                }
-
-                using(var t = photoSampleBuffer.GetImageBuffer())
-                {
-                    
-                }
-
-
-                //var i = new CGAffineTransform();
-                //i.Rotate(90);
-
-                //u = lol.ImageByApplyingTransform(y);
-           
-                //var filter = CIFilter.GetFilter("CIAffineTransform", );
-
-
+                var jpegData = AVCapturePhotoOutput.GetJpegPhotoDataRepresentation(photoSampleBuffer, previewPhotoSampleBuffer);
+                var photo = UIImage.LoadFromData(jpegData);
+                GoToDescription(photo, orientationOnPhoto);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                
-            }*/
-            var jpegData = AVCapturePhotoOutput.GetJpegPhotoDataRepresentation(photoSampleBuffer, previewPhotoSampleBuffer);
-            var h = UIImage.LoadFromData(jpegData);
-
-            GoToDescription(h);
+                AppSettings.Reporter.SendCrash(ex);
+                ShowAlert(Core.Localization.LocalizationKeys.PhotoProcessingError);
+            }
         }
 
         private UIImage CropImage(UIImage sourceImage, int cropX, int cropY, int width, int height)
@@ -182,7 +212,7 @@ namespace Steepshot.iOS.Views
 
         public override void ViewWillDisappear(bool animated)
         {
-            if (_captureSession.Running)
+            if (_captureSession != null && _captureSession.Running)
                 _captureSession.StopRunning();
 
             NavigationController.SetNavigationBarHidden(false, false);
@@ -197,7 +227,11 @@ namespace Steepshot.iOS.Views
             {
                 if (!await AVCaptureDevice.RequestAccessForMediaTypeAsync(AVMediaType.Video))
                 {
-                    _isCameraAccessDenied = true;
+                    enableCameraAccess.Hidden = false;
+
+                    photoButton.Hidden = true;
+                    flashButton.Hidden = true;
+                    swapCameraButton.Hidden = true;
                     return;
                 }
             }
@@ -222,7 +256,6 @@ namespace Steepshot.iOS.Views
             _capturePhotoOutput = new AVCapturePhotoOutput();
             _capturePhotoOutput.IsHighResolutionCaptureEnabled = true;
             _capturePhotoOutput.IsLivePhotoCaptureEnabled = false;
-
 
             if (!_captureSession.CanAddOutput(_capturePhotoOutput))
                 return;
@@ -269,33 +302,6 @@ namespace Steepshot.iOS.Views
             }
         }
 
-        /*
-        private void PhotoPicked(NSIndexPath indexPath)
-        {
-            var collectionCell = (PhotoCollectionViewCell)photoCollection.CellForItem(indexPath);
-
-            if (collectionCell.Asset != null)
-            {
-                using (var m = new PHImageManager())
-                {
-                    var options = new PHImageRequestOptions();
-
-                    options.DeliveryMode = PHImageRequestOptionsDeliveryMode.FastFormat;
-                    options.Synchronous = false;
-                    options.NetworkAccessAllowed = true;
-
-                    m.RequestImageData(collectionCell.Asset, options, (data, dataUti, orientation, info) =>
-                       {
-                           if (data != null)
-                           {
-                               var photo = UIImage.LoadFromData(data);
-                               GoToDescription(photo);
-                           }
-                       });
-                }
-            }
-        }*/
-
         private void SwitchCameraButtonTapped(object sender, EventArgs e)
         {
             var devicePosition = _captureDeviceInput.Device.Position;
@@ -312,6 +318,7 @@ namespace Steepshot.iOS.Views
             _captureDeviceInput = AVCaptureDeviceInput.FromDevice(device);
             _captureSession.AddInput(_captureDeviceInput);
             _captureSession.CommitConfiguration();
+            CheckDeviceOrientation(null);
         }
 
         private AVCaptureDevice GetCameraForOrientation(AVCaptureDevicePosition orientation)
@@ -325,13 +332,10 @@ namespace Steepshot.iOS.Views
             return null;
         }
 
-        private void GoToDescription(UIImage image)
+        private void GoToDescription(UIImage image, UIDeviceOrientation orientation)
         {
-            var descriptionViewController = new DescriptionViewController(image, "jpg");
+            var descriptionViewController = new DescriptionViewController(new List<Tuple<NSDictionary, UIImage>>() { new Tuple<NSDictionary, UIImage>(null, image) }, "jpg", orientation);
             NavigationController.PushViewController(descriptionViewController, true);
-            //var mainTabBar = NavigationController.ViewControllers[0];
-            //NavigationController.ViewControllers = new UIViewController[] { mainTabBar, descriptionViewController };
-            //NavigationController.PopViewController(true);
         }
     }
 }

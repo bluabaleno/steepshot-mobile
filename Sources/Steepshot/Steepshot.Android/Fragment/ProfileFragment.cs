@@ -7,7 +7,7 @@ using Android.Support.V4.Widget;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using Com.Lilarcor.Cheeseknife;
+using CheeseBind;
 using Steepshot.Activity;
 using Steepshot.Adapter;
 using Steepshot.Base;
@@ -39,17 +39,17 @@ namespace Steepshot.Fragment
         private RecyclerView.Adapter _adapter;
 
 #pragma warning disable 0649, 4014
-        [InjectView(Resource.Id.btn_back)] private ImageButton _backButton;
-        [InjectView(Resource.Id.btn_switcher)] private ImageButton _switcher;
-        [InjectView(Resource.Id.posts_list)] private RecyclerView _postsList;
-        [InjectView(Resource.Id.loading_spinner)] private ProgressBar _loadingSpinner;
-        [InjectView(Resource.Id.list_spinner)] private ProgressBar _listSpinner;
-        [InjectView(Resource.Id.refresher)] private SwipeRefreshLayout _refresher;
-        [InjectView(Resource.Id.btn_settings)] private ImageButton _settings;
-        [InjectView(Resource.Id.profile_login)] private TextView _login;
-        [InjectView(Resource.Id.list_layout)] private RelativeLayout _listLayout;
-        [InjectView(Resource.Id.first_post)] private Button _firstPostButton;
-        [InjectView(Resource.Id.post_prev_pager)] private ViewPager _postPager;
+        [BindView(Resource.Id.btn_back)] private ImageButton _backButton;
+        [BindView(Resource.Id.btn_switcher)] private ImageButton _switcher;
+        [BindView(Resource.Id.posts_list)] private RecyclerView _postsList;
+        [BindView(Resource.Id.loading_spinner)] private ProgressBar _loadingSpinner;
+        [BindView(Resource.Id.list_spinner)] private ProgressBar _listSpinner;
+        [BindView(Resource.Id.refresher)] private SwipeRefreshLayout _refresher;
+        [BindView(Resource.Id.btn_settings)] private ImageButton _settings;
+        [BindView(Resource.Id.profile_login)] private TextView _login;
+        [BindView(Resource.Id.list_layout)] private RelativeLayout _listLayout;
+        [BindView(Resource.Id.first_post)] private Button _firstPostButton;
+        [BindView(Resource.Id.post_prev_pager)] private ViewPager _postPager;
 #pragma warning restore 0649
 
         private PostPagerAdapter<UserProfilePresenter> _profilePagerAdapter;
@@ -153,6 +153,8 @@ namespace Steepshot.Fragment
         public override void OnResume()
         {
             base.OnResume();
+            _adapter.NotifyDataSetChanged();
+
             if (_postPager.Visibility == ViewStates.Visible)
                 if (Activity is RootActivity activity)
                     activity._tabLayout.Visibility = ViewStates.Invisible;
@@ -165,7 +167,7 @@ namespace Steepshot.Fragment
             if (!IsInitialized)
             {
                 InflatedView = inflater.Inflate(Resource.Layout.lyt_fragment_profile, null);
-                Cheeseknife.Inject(this, InflatedView);
+                Cheeseknife.Bind(this, InflatedView);
             }
             ToggleTabBar();
             return InflatedView;

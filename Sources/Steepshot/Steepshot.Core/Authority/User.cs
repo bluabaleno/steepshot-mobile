@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Steepshot.Core.Models.Enums;
 using Steepshot.Core.Utils;
 
 namespace Steepshot.Core.Authority
@@ -44,17 +45,6 @@ namespace Steepshot.Core.Authority
             }
         }
 
-        public bool IsNeedRewards
-        {
-            get => UserInfo.IsNeedRewards;
-            set
-            {
-                UserInfo.IsNeedRewards = value;
-                if (IsAuthenticated)
-                    _data.Update(UserInfo);
-            }
-        }
-        
         public bool ShowFooter
         {
             get => UserInfo.ShowFooter;
@@ -78,6 +68,18 @@ namespace Steepshot.Core.Authority
         }
 
         public HashSet<string> PostBlackList => UserInfo.PostBlackList;
+        public List<PushSubscription> PushSubscriptions
+        {
+            get => UserInfo.PushSubscriptions;
+            set => UserInfo.PushSubscriptions = value;
+        }
+
+        public List<string> WatchedUsers => UserInfo.WatchedUsers;
+        public string PushesPlayerId
+        {
+            get => UserInfo.PushesPlayerId;
+            set => UserInfo.PushesPlayerId = value;
+        }
 
         public string Login => UserInfo.Login;
 
@@ -120,7 +122,7 @@ namespace Steepshot.Core.Authority
             }
         }
 
-        public void AddAndSwitchUser(string login, string pass, KnownChains chain, bool isNeedRewards)
+        public void AddAndSwitchUser(string login, string pass, KnownChains chain)
         {
             if (!string.IsNullOrEmpty(Login) && UserInfo.PostingKey == null)
             {
@@ -134,7 +136,6 @@ namespace Steepshot.Core.Authority
                 Login = login,
                 Chain = chain,
                 PostingKey = pass,
-                IsNeedRewards = isNeedRewards
             };
 
             _data.Insert(userInfo);
