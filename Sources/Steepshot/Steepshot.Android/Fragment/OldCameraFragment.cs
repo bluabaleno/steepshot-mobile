@@ -344,8 +344,8 @@ namespace Steepshot.Fragment
             _camera.SetDisplayOrientation(result);
 
             var parameters = _camera.GetParameters();
-            parameters.PictureFormat = ImageFormat.Jpeg;
-            parameters.JpegQuality = 90;
+            parameters.PictureFormat = ImageFormatType.Jpeg;
+            parameters.JpegQuality = 100;
 
             if (parameters.SupportedFocusModes != null && parameters.SupportedFocusModes.Contains(Camera.Parameters.FocusModeContinuousVideo))
             {

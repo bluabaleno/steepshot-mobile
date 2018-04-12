@@ -49,6 +49,7 @@ namespace Steepshot.Activity
         private TagsAdapter _tagsAdapter;
         private PreparePostModel _model;
         private string _previousQuery;
+        private int _rotation = 0;
 
 #pragma warning disable 0649, 4014
         [BindView(Resource.Id.title)] private EditText _title;
@@ -193,7 +194,7 @@ namespace Steepshot.Activity
 
                 path = $"{directory}/{Guid.NewGuid()}.jpeg";
                 stream = new System.IO.FileStream(path, System.IO.FileMode.Create);
-                btmp.Compress(Bitmap.CompressFormat.Jpeg, 100, stream);
+                btmp.Compress(Bitmap.CompressFormat.Jpeg, 99, stream);
 
                 return path;
             }
@@ -219,20 +220,9 @@ namespace Steepshot.Activity
                 return;
 
             _photoFrame.Clickable = false;
-            var btmp = BitmapFactory.DecodeFile(_path);
-            _shouldCompress = true;
+            _rotation = (_rotation + 90) % 360;
+            _photoFrame.Rotation = _rotation;
 
-            btmp = BitmapUtils.RotateImage(btmp, 90);
-            using (var stream = new System.IO.FileStream(_path, System.IO.FileMode.Create))
-            {
-                btmp.Compress(Bitmap.CompressFormat.Jpeg, 100, stream);
-            }
-            btmp.Recycle();
-            btmp.Dispose();
-
-            var photoUri = Android.Net.Uri.Parse(_path);
-            _photoFrame.SetImageURI(null);
-            _photoFrame.SetImageURI(photoUri);
             _photoFrame.Clickable = true;
         }
 
@@ -413,6 +403,26 @@ namespace Steepshot.Activity
 
             if (_editpost == null)
             {
+                if (_rotation != 0)
+                {
+                    var btmp = BitmapFactory.DecodeFile(_path);
+                    _shouldCompress = true;
+
+                    btmp = BitmapUtils.RotateImage(btmp, _rotation);
+                    using (var stream = new System.IO.FileStream(_path, System.IO.FileMode.Create))
+                    {
+                        btmp.Compress(Bitmap.CompressFormat.Jpeg, 99, stream);
+                    }
+                    btmp.Recycle();
+                    btmp.Dispose();
+
+                    var photoUri = Android.Net.Uri.Parse(_path);
+                    _photoFrame.SetImageURI(null);
+                    _photoFrame.SetImageURI(photoUri);
+
+                    _rotation = 0;
+                }
+
                 var operationResult = await UploadPhoto(_path);
                 if (IsFinishing || IsDestroyed)
                     return;
