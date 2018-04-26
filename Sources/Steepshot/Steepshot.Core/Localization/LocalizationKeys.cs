@@ -148,5 +148,6 @@
         Posts5minLimit,
         PostsDayLimit,
         EmptyCommentField,
+        UserNotificationSubscriptionError
     }
 }

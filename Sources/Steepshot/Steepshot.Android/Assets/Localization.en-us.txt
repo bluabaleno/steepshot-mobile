@@ -199,6 +199,7 @@
 		"GoToBrowse":"Let's go",
         "Posts5minLimit":"You can publish no more than one post in 5 minutes",
         "PostsDayLimit":"You have reached per-day limit for 15 posts",
+		"UserNotificationSubscriptionError":"Couldn't subscribe. Try again",
 
         "<h1>Server Error (500)</h1>": "(500) Server Error",
         "<h1>Not Found</h1>":"Not Found",

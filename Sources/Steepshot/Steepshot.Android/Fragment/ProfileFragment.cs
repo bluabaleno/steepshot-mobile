@@ -429,13 +429,17 @@ namespace Steepshot.Fragment
             {
                 WatchedUser = _profileId
             };
-            var error = await BasePresenter.TrySubscribeForPushes(model);
-            if (error == null)
+            var response = await BasePresenter.TrySubscribeForPushes(model);
+            if (response.IsSuccess)
             {
                 if (UserIsWatched)
                     BasePresenter.User.WatchedUsers.Remove(_profileId);
                 else
                     BasePresenter.User.WatchedUsers.Add(_profileId);
+            }
+            else
+            {
+                Toast.MakeText(Activity, AppSettings.LocalizationManager.GetText(LocalizationKeys.UserNotificationSubscriptionError), ToastLength.Short);
             }
         }
 
